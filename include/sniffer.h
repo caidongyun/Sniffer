@@ -19,9 +19,14 @@
 #ifndef SNIFFER_H_
 #define SNIFFER_H_
 #include <QtCore/QtDebug>
+#include <QtCore/QByteArray>
+#include <QtCore/QString>
+#include <QtCore/QVector>
 
 #include <pcap.h>
 #include <time.h>
+
+#include "sniffertypes.h"
 
 #define PCAP_PROMISCUOUS 1  // Open the device in Promiscuous Mode
 #define PCAP_TIMEOUT 1000   // The timeout of pcap
@@ -47,12 +52,15 @@ class Sniffer
 
         int captureOnce();   // Capture once
 
-    private:
+
+    public:
         pcap_if_t *pAllNetDevs;         // The pointer of all the net device list
         int iNetDevsNum;                // The total number of the net device
         char errbuf[PCAP_ERRBUF_SIZE];  // The error message buffer, which contains the error message
         pcap_t *device;                 // The net device
         struct pcap_pkthdr* header;     // The captured packet header
         const u_char *packetData;       // The data packet 
+        QVector<SnifferData> snifferDataVector; // The sniffered Data
+        
 };
 #endif

@@ -22,8 +22,9 @@
 
 Sniffer::Sniffer()
 {
-    Sniffer::pAllNetDevs = NULL;
-    Sniffer::iNetDevsNum = 0;
+    this->pAllNetDevs = NULL;
+    this->iNetDevsNum = 0;
+    this->device = NULL;
 }
 
 Sniffer::~Sniffer()
@@ -39,10 +40,10 @@ Sniffer::~Sniffer()
  */
 void Sniffer::freeNetDevsMem()
 {
-    if (Sniffer::pAllNetDevs)
+    if (this->pAllNetDevs)
     {
-        pcap_freealldevs(Sniffer::pAllNetDevs);
-        Sniffer::pAllNetDevs = NULL;
+        pcap_freealldevs(this->pAllNetDevs);
+        this->pAllNetDevs = NULL;
     }
 }
 
@@ -57,19 +58,19 @@ bool Sniffer::getAllNetDevs()
 {
     freeNetDevsMem();
 
-    if (pcap_findalldevs(&(Sniffer::pAllNetDevs), Sniffer::errbuf) == -1)
+    if (pcap_findalldevs(&(this->pAllNetDevs), this->errbuf) == -1)
     {
-        qWarning("%s", Sniffer::errbuf);
+        qWarning("%s", this->errbuf);
         return false;
     }
 
     qDebug("Get device");
-    for (pcap_if_t *ind = Sniffer::pAllNetDevs; ind != NULL; ind = ind->next)
+    for (pcap_if_t *ind = this->pAllNetDevs; ind != NULL; ind = ind->next)
     {
-        qDebug("device%d:%s", Sniffer::iNetDevsNum, ind->name);
-        Sniffer::iNetDevsNum ++;
+        qDebug("device%d:%s", this->iNetDevsNum, ind->name);
+        this->iNetDevsNum ++;
     }
-    qDebug("Get %d devices", Sniffer::iNetDevsNum);
+    qDebug("Get %d devices", this->iNetDevsNum);
     return true;
 }
 
@@ -85,7 +86,7 @@ bool Sniffer::getAllNetDevs()
  */
 bool Sniffer::openNetDev(char *szDevName, int flag, int iLengthLimit)
 {
-    if (Sniffer::device != NULL)
+    if (this->device != NULL)
     {
         closeNetDev();
     }
@@ -94,7 +95,7 @@ bool Sniffer::openNetDev(char *szDevName, int flag, int iLengthLimit)
                             iLengthLimit,  // The max length of the packet data
                             flag,          // The open mode, If 0 means none Promiscuous Mode, otherwises
                             PCAP_TIMEOUT,  // The timeout of the function
-                            Sniffer::errbuf
+                            this->errbuf
             );
 
     if (device != NULL)
@@ -103,7 +104,7 @@ bool Sniffer::openNetDev(char *szDevName, int flag, int iLengthLimit)
     }
     else
     {
-        qWarning("%s", Sniffer::errbuf);
+        qWarning("%s", this->errbuf);
         return false;
     }
 }
@@ -120,17 +121,17 @@ bool Sniffer::openNetDev(char *szDevName, int flag, int iLengthLimit)
  */
 bool Sniffer::openNetDev(int iDevNum, int flag, int iLengthLimit)
 {
-    if (Sniffer::device != NULL)
+    if (this->device != NULL)
     {
         closeNetDev();
     }
 
-    if (iDevNum < 0 || iDevNum > Sniffer::iNetDevsNum)
+    if (iDevNum < 0 || iDevNum > this->iNetDevsNum)
     {
         return false;
     }
 
-    pcap_if_t* ind = Sniffer::pAllNetDevs;
+    pcap_if_t* ind = this->pAllNetDevs;
     for (int i = 0; i < iDevNum; i++)
     {
         ind = ind->next;
@@ -141,7 +142,7 @@ bool Sniffer::openNetDev(int iDevNum, int flag, int iLengthLimit)
                             iLengthLimit,  // The max length of the packet data
                             flag,          // The open mode, If 0 means none Promiscuous Mode, otherwises
                             PCAP_TIMEOUT,  // The timeout of the function
-                            Sniffer::errbuf
+                            this->errbuf
             );
 
     if (device != NULL)
@@ -150,17 +151,17 @@ bool Sniffer::openNetDev(int iDevNum, int flag, int iLengthLimit)
     }
     else
     {
-        qWarning("%s", Sniffer::errbuf);
+        qWarning("%s", this->errbuf);
         return false;
     }
 }
 
 bool Sniffer::closeNetDev()
 {
-    if (Sniffer::device != NULL)
+    if (this->device != NULL)
     {
-        pcap_close(Sniffer::device);
-        Sniffer::device = NULL;
+        pcap_close(this->device);
+        this->device = NULL;
         return true;
     }
     return false;
@@ -168,7 +169,12 @@ bool Sniffer::closeNetDev()
 
 int Sniffer::captureOnce()
 {
-   int res = pcap_next_ex(Sniffer::device, &(Sniffer::header), &(Sniffer::packetData));
-   qDebug("Time:%s---data:%s", ctime((const time_t*)&Sniffer::header->ts.tv_sec), Sniffer::packetData);
+   int res = pcap_next_ex(this->device, &(this->header), &(this->packetData));
+   //QByteArray rawData;
+   //rawData.clear();
+   //rawData.setRawData((const char*)this->packetData, (this->header)->caplen);
+   //QString tmpStr(rawData.toHex()); 
+   //qDebug("Time:%s---data:%s", ctime((const time_t*)&this->header->ts.tv_sec),qPrintable(tmpStr));
    return res;
 }
+

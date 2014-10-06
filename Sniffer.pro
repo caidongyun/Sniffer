@@ -19,8 +19,11 @@ LIBS += -lpcap
 
 SOURCES += src/main1.cpp\
         src/sniffer.cpp\
+        src/snifferthread.cpp\
         src/mainwindow.cpp
 
 HEADERS  += include/mainwindow.h\
-         include/sniffer.h
+         include/sniffer.h\
+         include/snifferutil.h\
+         include/snifferthread.h
 

@@ -16,15 +16,23 @@
  * =====================================================================================
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include "../include/sniffer.h"
 #include "../include/loghandler.h"
+#include "../include/snifferthread.h"
 
 int main()
 {
    qInstallMsgHandler(logHandler);
    Sniffer sniffer;
    sniffer.getAllNetDevs();
-   sniffer.openNetDev(0);
-   while (sniffer.captureOnce() >= 0);
+   printf("flag:%d\n", sniffer.openNetDev(0));
+   //sniffer.captureOnce();
+   //while (sniffer.captureOnce() >= 0);
+   SnifferThread *pSnifferThread = new SnifferThread(&sniffer); 
+   //SnifferThread *pSnifferThread = new SnifferThread();
+   pSnifferThread->start();
+   pSnifferThread->wait();
+   
    return 0;
 }

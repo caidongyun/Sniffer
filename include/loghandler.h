@@ -43,20 +43,22 @@ void logHandler(QtMsgType type, const char *msg)
         strLog = QString(QDateTime::currentDateTime().toString("yyyy/MM/dd hh:mm:ss ")+"[Fatal] %1").arg(QObject::tr(msg));
         abort();
     }
+
+    QTextStream cout(stdout, QIODevice::WriteOnly);
+    cout << strLog << endl;
+    //QFile outFile("./debug.log");
+    //outFile.open(QIODevice::WriteOnly | QIODevice::Append);
  
-    QFile outFile("./debug.log");
-    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    //    /**< the max size of log.txt.*/
+    //if(outFile.size()/1000>LOGFILEMAX)
+    //{
+    //    outFile.close();
+    //    outFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Truncate);
+    //    outFile.close();
+    //    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    //}
  
-        /**< the max size of log.txt.*/
-    if(outFile.size()/1000>LOGFILEMAX)
-    {
-        outFile.close();
-        outFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Truncate);
-        outFile.close();
-        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
-    }
- 
-    QTextStream ts(&outFile);
-    ts << strLog << endl;
+    //QTextStream ts(&outFile);
+    //ts << strLog << endl;
 }
 #endif
