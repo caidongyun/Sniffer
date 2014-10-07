@@ -18,12 +18,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../include/sniffer.h"
-#include "../include/loghandler.h"
+#include "../include/snifferutil.h"
 #include "../include/snifferthread.h"
 
 int main()
 {
-   qInstallMsgHandler(logHandler);
+   qInstallMsgHandler(SnifferUtil::logHandler);
    Sniffer sniffer;
    sniffer.getAllNetDevs();
    printf("flag:%d\n", sniffer.openNetDev(0));

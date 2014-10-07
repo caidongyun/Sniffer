@@ -19,6 +19,15 @@
 #define MAINWINDOW_H_
 
 #include <QMainWindow>
+#include <QMessageBox>
+
+#include "sniffer.h"
+#include "snifferthread.h"
+#include "sniffertypes.h"
+#include "snifferutil.h"
+
+class SnifferThread;
+class QMessageBox;
 
 class MainWindow : public QMainWindow
 {
@@ -27,6 +36,10 @@ class MainWindow : public QMainWindow
 public: 
     MainWindow();
     ~MainWindow();
+
+private:
+    SnifferThread *pSnifferthread;
+    Sniffer *pSniffer;
 };
 
 #endif
