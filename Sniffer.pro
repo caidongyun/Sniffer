@@ -17,13 +17,15 @@ INCLUDEPATH += .
 # Input
 LIBS += -lpcap
 
-SOURCES += src/main1.cpp\
+SOURCES += src/main.cpp\
         src/sniffer.cpp\
         src/snifferthread.cpp\
+        src/mytableview.cpp\
         src/mainwindow.cpp
 
-HEADERS  += include/mainwindow.h\
-         include/sniffer.h\
+HEADERS  += include/sniffer.h\
+         include/snifferthread.h\
          include/snifferutil.h\
-         include/snifferthread.h
+         include/mytableview.h\
+         include/mainwindow.h
 

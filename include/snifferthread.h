@@ -21,20 +21,30 @@
 #define SNIFFERTHREAD_H_
 
 #include <QtCore/QThread>
+#include <QStandardItemModel>
 
 #include <time.h>
 
 #include "sniffer.h"
 #include "sniffertypes.h"
 #include "snifferutil.h"
+#include "mytableview.h"
+
+class QStandardItemModel;
+class MyTableView;
+class QThread;
 
 class SnifferThread : public QThread
 {
     Q_OBJECT
 
+    signals:
+        void addPacketItem(QString strTime, QString strSrc,
+                QString strDst, QString strProtocol,int iLength,
+                QString info);
     public:
         SnifferThread();
-        SnifferThread(Sniffer* pSniffer);
+        SnifferThread(Sniffer* pSniffer, MyTableView*  tableview);
         ~SnifferThread();
         void run();
         void stopSniffer();
@@ -42,6 +52,7 @@ class SnifferThread : public QThread
 
     private:
         Sniffer *pSniffer;
+        MyTableView* tableview;
         volatile bool bStop;
 };
 #endif

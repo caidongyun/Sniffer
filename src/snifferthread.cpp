@@ -24,15 +24,17 @@ SnifferThread::SnifferThread()
     this->bStop = true;
 }
 
-SnifferThread::SnifferThread(Sniffer *pSniffer)
+SnifferThread::SnifferThread(Sniffer *pSniffer, MyTableView* tableview)
 {
     this->pSniffer = pSniffer;
     this->bStop = true;
+    this->tableview = tableview;
 }
 
 SnifferThread::~SnifferThread()
 {
-
+    this->quit();
+    this->wait();
 }
 
 void SnifferThread::run()
@@ -45,6 +47,8 @@ void SnifferThread::run()
     while (bStop != true && (res = this->pSniffer->captureOnce()) >= 0)
     {
         int tmpFrameOffset = 0; // The offset of the frame
+        
+        tmpSnifferData.reInit();
         if (res == 0)
         {
             continue;
@@ -85,7 +89,7 @@ void SnifferThread::run()
                     qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
                             tmpSnifferData.strDst.toStdString().data());
 
-                    ipProtocal = ntohs(tmpIpHeader->ip_p);
+                    ipProtocal = tmpIpHeader->ip_p;
                 } 
                 else
                 {
@@ -95,7 +99,7 @@ void SnifferThread::run()
 
                     //char buf[INET6_ADDRSTRLEN];
                     //inet_ntop(AF_INET6,(void *)&tmpIpHeader->ip6_src,buf, INET6_ADDRSTRLEN);
-                    ipProtocal = ntohs(tmpIpHeader->ip6_ctlun.ip6_un1.ip6_un1_nxt);
+                    ipProtocal = tmpIpHeader->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
                     tmpSnifferData.strSrc = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_src);
                     tmpSnifferData.strDst = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_dst);
@@ -220,12 +224,17 @@ void SnifferThread::run()
                 break;
             }
 
-            if (canResolve)
-            {
-                pSniffer->snifferDataVector.append(tmpSnifferData);
-            }
         }
+        if (canResolve)
+        {
+            pSniffer->snifferDataVector.append(tmpSnifferData);
+            emit addPacketItem(tmpSnifferData.strTime, tmpSnifferData.strSrc,
+                    tmpSnifferData.strDst, tmpSnifferData.strProtocol,
+                    tmpSnifferData.iLength, tmpSnifferData.info);
+        }
+
     }
+
 }
 
 void SnifferThread::startSniffer()
@@ -236,4 +245,5 @@ void SnifferThread::startSniffer()
 void SnifferThread::stopSniffer()
 {
     this->bStop = true;
+
 }

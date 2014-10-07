@@ -19,7 +19,9 @@
 
 MainWindow::MainWindow()
 {
-    this->pSnifferthread = NULL;
+    
+    CreateMainWidget();
+
     this->pSniffer = new Sniffer();
     
     if (pSniffer->getAllNetDevs() == false)
@@ -32,9 +34,41 @@ MainWindow::MainWindow()
                     "<li>您的杀毒软件或者防火墙阻止本软件运行</li></ul>"), 
                     QMessageBox::Ok);
     }
+    this->pSniffer->openNetDev(0);
+    this->pSnifferthread = new SnifferThread(pSniffer, this->tableview);
+    connect(this->pSnifferthread,SIGNAL(addPacketItem(QString, QString, QString,QString, int, QString)),
+            this->tableview,SLOT(addPacketItem(QString, QString, QString,QString, int, QString)));
+    this->pSnifferthread->start();
 }
 
 MainWindow::~MainWindow()
 {
+    if (this->pSniffer)
+    {
+        delete this->pSniffer;
+        this->pSniffer = NULL;
+    }
+    if (this->pSnifferthread)
+    {
+        this->pSnifferthread->stopSniffer();
+        delete this->pSnifferthread;
+        this->pSnifferthread = NULL;
+    }
+}
 
+void MainWindow::CreateMainWidget()
+{
+    this->tableview = new MyTableView;
+    this->treewidget = new QTreeWidget;
+    this->charTextBlock = new QTextEdit;
+    this->byteTextBlock = new QTextEdit;
+
+    this->mainspliter = new QSplitter(Qt::Vertical,this);
+
+    this->mainspliter->addWidget(this->tableview);
+    this->mainspliter->addWidget(this->treewidget);
+    this->charTextBlock->setText("kkfdhkjdk");
+    this->mainspliter->addWidget(this->charTextBlock);
+    
+    this->setCentralWidget(this->mainspliter);
 }

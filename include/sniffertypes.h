@@ -125,6 +125,17 @@ class SnifferData
         QString info;         // Some short info about the data
         QByteArray rawData;   // The raw data
         //DetailPacketAnalysis detailAnalysis;
+        
+        void reInit()
+        {
+            strTime = "";
+            strSrc = "";
+            strDst = "";
+            strProtocol = "";
+            iLength = 0;
+            info = "";
+            rawData = NULL;
+        }
 };
 
 // TCP protocal
