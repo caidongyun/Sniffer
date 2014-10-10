@@ -21,7 +21,14 @@
 
 #include <QtCore/QByteArray>
 #include <QTextEdit>
+#include <QMenu>
+#include <QAction>
+#include <QContextMenuEvent>
+
 #include "../include/snifferutil.h"
+
+class QMenu;
+class QAction;
 
 class OriginPacketText : public QTextEdit
 {
@@ -32,9 +39,27 @@ class OriginPacketText : public QTextEdit
     
         void addData(const QByteArray&);
 
+    private slots:
+        void hexView();
+        void bitsView();
+
     private:
+        /* *
+         * Set raw byte text and its char text
+         * */
+        void setDataText();
+
+        void createContextMenu();
+
+        // Is hex view or bits view
+        // The hex view will show 16 bytes while bits view show 8 bytes
+        bool bHex;
         QString biggerSpace;
         QString litterSpace;
+        QByteArray rawdata;
+
+        QAction* hexAction;
+        QAction* bitsAction;
 
 };
 
