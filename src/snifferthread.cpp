@@ -58,16 +58,21 @@ void SnifferThread::run()
         rawData.setRawData((const char*)pSniffer->packetData, pSniffer->header->caplen);
         strftime(timestr, sizeof(timestr), "%H:%M:%S", localtime(&pSniffer->header->ts.tv_sec));
 
-        qDebug("Time:%s---data:%s", timestr,qPrintable(rawData.toHex().toLower()));
-
         tmpSnifferData.rawData = rawData;
         tmpSnifferData.iLength = pSniffer->header->caplen;
         tmpSnifferData.strTime = timestr;
+        tmpSnifferData.strProtocol = "Unknown"; 
+        qDebug("Size is %d", tmpSnifferData.iLength);
         const u_char* pPktData = pSniffer->packetData;
 
         // Set the ether header
         struct ether_header *tmpEthHeader = (struct ether_header*)(pPktData + tmpFrameOffset);
         tmpFrameOffset += sizeof(struct ether_header);
+
+        // Set the src and dst addr
+        tmpSnifferData.strSrc = SnifferUtil::macToHost(tmpEthHeader->ether_shost);
+        tmpSnifferData.strDst = SnifferUtil::macToHost(tmpEthHeader->ether_dhost);
+
         int tmpProtocal = ntohs(tmpEthHeader->ether_type);
 
         bool canResolve = true;
@@ -209,10 +214,26 @@ void SnifferThread::run()
                 qDebug("Resolve arp header");
                 struct ether_arp *arpHeader = (struct ether_arp*)(pPktData + tmpFrameOffset);
                 tmpFrameOffset += sizeof(struct ether_arp);
-
-                tmpSnifferData.strSrc = SnifferUtil::macToHost(arpHeader->arp_sha);
-                tmpSnifferData.strDst = SnifferUtil::macToHost(arpHeader->arp_tha);
+                
                 tmpSnifferData.strProtocol = "ARP";
+
+                unsigned short int op = ntohs(arpHeader->ea_hdr.ar_op);
+                if (op == 0x1)
+                {
+                    // arp Request 
+                    tmpSnifferData.info = "Gratuitous ARP for " + SnifferUtil::netToIp(arpHeader->arp_spa)
+                        + "(Request)";
+                }
+                else if (op == 0x2)
+                {
+                    // arp reply
+                    tmpSnifferData.info = "Who has " + SnifferUtil::netToIp(arpHeader->arp_spa) +
+                        "? Tell" + SnifferUtil::netToIp(arpHeader->arp_tpa);
+                }
+                else
+                {
+                    tmpSnifferData.info = "error op code " + QString::number(op,16);
+                }
                 qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
                         tmpSnifferData.strDst.toStdString().data());
                 break;

@@ -20,7 +20,7 @@
 MainWindow::MainWindow()
 {
     
-    CreateMainWidget();
+    createMainWidget();
 
     this->pSniffer = new Sniffer();
     
@@ -56,19 +56,29 @@ MainWindow::~MainWindow()
     }
 }
 
-void MainWindow::CreateMainWidget()
+void MainWindow::createMainWidget()
 {
     this->tableview = new MyTableView;
     this->treewidget = new QTreeWidget;
-    this->charTextBlock = new QTextEdit;
-    this->byteTextBlock = new QTextEdit;
+    this->packettext = new OriginPacketText;
 
     this->mainspliter = new QSplitter(Qt::Vertical,this);
 
     this->mainspliter->addWidget(this->tableview);
     this->mainspliter->addWidget(this->treewidget);
-    this->charTextBlock->setText("kkfdhkjdk");
-    this->mainspliter->addWidget(this->charTextBlock);
+    this->mainspliter->addWidget(this->packettext);
     
     this->setCentralWidget(this->mainspliter);
+
+    // Binding tableview selection action
+    QObject::connect(this->tableview->selectionModel(), 
+            SIGNAL(selectionChanged( const QItemSelection&, const QItemSelection&)),
+            this, SLOT(tableviewSelect(const QItemSelection&)));
+}
+
+void MainWindow::tableviewSelect( const QItemSelection & selected)
+{
+    int row = selected.indexes().first().row();
+
+    this->packettext->addData(this->pSniffer->snifferDataVector.at(row).rawData); 
 }

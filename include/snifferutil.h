@@ -25,6 +25,7 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/ether.h>
 
 #define LOGFILEMAX 10000
 
@@ -40,19 +41,61 @@ class SnifferUtil
             return QString(buf);
         }
 
+        static QString netToIp(struct in_addr ipaddr)
+        {
+            return inet_ntoa(ipaddr);
+        }
+
+        static QString netToIp(u_int8_t ipaddr[4])
+        {
+            return inet_ntoa(*(struct in_addr*)ipaddr);
+        }
+
         static QString macToHost(u_int8_t addr[6])
         {
-            QByteArray rawData;
-            rawData.setRawData((const char*)addr, 6);
-            rawData = rawData.toHex().toLower();
-            QString res = "";
+            QString res = QString(QLatin1String(ether_ntoa((struct ether_addr*)addr)));
 
-            int i;
-            for (i=0; i<5; i++)
+            if (res == "ff:ff:ff:ff:ff:ff")
             {
-                res = res + rawData[i] + rawData[i+1] + ":";
+                res = "Broadcast";
             }
-            res = res + rawData[i] + rawData[i+1];
+            return res;
+        }
+
+        /**
+         * Display the byte, 
+         * if base = 16, such as 0xff we just change it to "ff"
+         * else if base=2 will "11111111"
+         */
+        static QString byteToHexStr(u_int8_t byte, int base)
+        {
+            if (base == 2)
+            {
+                return QString("%1").arg(byte, 8,2, QLatin1Char('0'));
+            } 
+            else if (base == 16)
+            {
+                return QString("%1").arg(byte, 2,16, QLatin1Char('0'));
+            }
+            else
+            {
+                qDebug("Please input the base 2 or 16");
+                return QString("");
+            }
+        }
+
+        static QString byteToChar(QByteRef byte)
+        {
+            QString res = "";
+            if (byte > (char)32 && byte < (char)127)
+            {
+                res += byte;
+            }
+            else
+            {
+                res += ".";
+            }
+
             return res;
         }
 

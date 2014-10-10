@@ -30,6 +30,7 @@
 #include "sniffertypes.h"
 #include "snifferutil.h"
 #include "mytableview.h"
+#include "originpacket_text.h"
 
 class SnifferThread;
 class MyTableView;
@@ -38,6 +39,7 @@ class QTreeWidget;
 class QTableView;
 class QTextEdit;
 class QSplitter;
+class OriginPacketText;
 
 class MainWindow : public QMainWindow
 {
@@ -47,15 +49,17 @@ public:
     MainWindow();
     ~MainWindow();
 
+public slots:
+    void tableviewSelect(const QItemSelection & selected);
+
 private:
-    void CreateMainWidget();
+    void createMainWidget();
 
 private:
     MyTableView *tableview;
-    QTreeWidget *treewidget; 
-    QTextEdit *byteTextBlock;
-    QTextEdit *charTextBlock;
+    QTreeWidget *treewidget;    
     QSplitter *mainspliter;
+    OriginPacketText *packettext;
 
     SnifferThread *pSnifferthread;
     Sniffer *pSniffer;
