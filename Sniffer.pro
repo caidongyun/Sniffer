@@ -15,6 +15,8 @@ TEMPLATE = app
 INCLUDEPATH += .
 DEPENDPATH += .
 
+RESOURCES = res/appliction.qrc
+
 # Input
 LIBS += -lpcap
 

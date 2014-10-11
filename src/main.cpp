@@ -19,6 +19,8 @@
 
 #include <QApplication>
 #include <QtCore/QTextCodec>
+#include <QtCore/QTextStream>
+#include <QtCore/QFile>
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,19 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForCStrings(codec);
 
     QApplication a(argc, argv);
+    QFile file(":/qss/common.qss");
+
+    if (file.open(QFile::ReadOnly))
+    {
+        qDebug("Open success");
+        QTextStream textStream(&file);
+        a.setStyleSheet(textStream.readAll());
+    }
+    else
+    {
+        qDebug("No such Resource file %s", file.fileName().toStdString().data());
+    }
+
     MainWindow w;
     w.show();
 

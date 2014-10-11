@@ -51,13 +51,17 @@ MainWindow::~MainWindow()
     if (this->pSnifferthread)
     {
         this->pSnifferthread->stopSniffer();
-        delete this->pSnifferthread;
+        this->pSnifferthread->deleteLater();
         this->pSnifferthread = NULL;
     }
 }
 
 void MainWindow::createMainWidget()
 {
+    this->setWindowTitle("Sniffer");
+    this->setWindowState(Qt::WindowMaximized);
+    this->setGeometry(0,0,960,768);
+
     this->tableview = new MyTableView;
     this->treewidget = new QTreeWidget;
     this->packettext = new OriginPacketText;

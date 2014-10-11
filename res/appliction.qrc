@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <!-- qss file-->
+    <qresource>
+       <file>qss/common.qss</file>
+    </qresource>
+</RCC>

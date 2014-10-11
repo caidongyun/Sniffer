@@ -1,0 +1,75 @@
+/* light blue: #daeeff
+    selection background color, dark blue:#4a90d9
+    grey: #444444
+*/
+
+QTextEdit { 
+   background-color: white;
+   background-attachment: scroll;
+   selection-background-color: #4a90d9;
+}
+
+QTableView {
+   background-color: white;
+   color: black;
+   font: "mono" bold 8px;
+}
+
+QTableView::item{
+   background-color: #daeeff;
+   margin-bottom: 1px;
+}
+
+QTableView::item::selected{
+   background-color: #4a90d9;
+   color: white;
+}
+
+QHeaderView::section, 
+   QHeaderView::section::checked {
+   color: #444444;
+   font: bold 15px "mono";
+
+   background-color: white;
+   padding: 8px;
+}
+
+QHeaderView::section::hover {
+   color: black;
+}
+
+QScrollBar:vertical {
+    border: 0.5px solid #dadbde;
+    background-color:#C6E2FF;
+ 
+    width:  15px;
+}
+ 
+QScrollBar::handle:vertical {
+    border: 0.5px solid #3d7bad;
+    background-color:qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+                                     stop: 0 #F0FFFF, stop: 1 #C6E2FF);
+    border-radius: 3px;
+    min-height: 20px;
+    margin: 0px -1px 0 -0.5px;
+}
+
+QScrollBar::handle:pressed{
+      background-color:white;
+}
+ 
+QScrollBar::add-line:vertical {
+    height: 0px;
+ 
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+ 
+QScrollBar::sub-line:vertical {
+    height: 0px;
+ 
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+

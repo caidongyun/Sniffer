@@ -20,8 +20,9 @@
 
 MyTableView::MyTableView()
 {
-    this->iPos = 0;
+    // Set Table Style
 
+    this->iPos = 0;
     this->model = new QStandardItemModel();
     this->model->setColumnCount(7);
     model->setHeaderData(0,Qt::Horizontal,tr("No."));
@@ -41,6 +42,8 @@ MyTableView::MyTableView()
     this->setSelectionMode(QAbstractItemView::SingleSelection);
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    this->setShowGrid(false);
+    
 }
 
 MyTableView::~MyTableView()
