@@ -62,7 +62,6 @@ void SnifferThread::run()
         tmpSnifferData.iLength = pSniffer->header->caplen;
         tmpSnifferData.strTime = timestr;
         tmpSnifferData.strProtocol = "Unknown"; 
-        qDebug("Size is %d", tmpSnifferData.iLength);
         const u_char* pPktData = pSniffer->packetData;
 
         // Set the ether header
@@ -84,21 +83,21 @@ void SnifferThread::run()
                 int ipProtocal = -1;
                 if (tmpProtocal == ETHERTYPE_IP)
                 {
-                    qDebug("Resolve ipv4 header:%x" ,tmpProtocal);
+                    //qDebug("Resolve ipv4 header:%x" ,tmpProtocal);
                     struct ip* tmpIpHeader = (struct ip*)(pPktData + tmpFrameOffset); // Add the offset of mac header
                     tmpFrameOffset += sizeof(struct ip);
 
                     tmpSnifferData.strSrc = inet_ntoa(tmpIpHeader->ip_src);
                     tmpSnifferData.strDst = inet_ntoa(tmpIpHeader->ip_dst);
                     
-                    qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
-                            tmpSnifferData.strDst.toStdString().data());
+                    //qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
+                    //        tmpSnifferData.strDst.toStdString().data());
 
                     ipProtocal = tmpIpHeader->ip_p;
                 } 
                 else
                 {
-                    qDebug("Resolve ipv6 header:%x" ,tmpProtocal);
+                    //qDebug("Resolve ipv6 header:%x" ,tmpProtocal);
                     struct ip6_hdr* tmpIpHeader = (struct ip6_hdr*)(pPktData + tmpFrameOffset);
                     tmpFrameOffset += sizeof(struct ip6_hdr);
 
@@ -109,8 +108,8 @@ void SnifferThread::run()
                     tmpSnifferData.strSrc = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_src);
                     tmpSnifferData.strDst = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_dst);
 
-                    qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
-                            tmpSnifferData.strDst.toStdString().data());
+                    //qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
+                    //        tmpSnifferData.strDst.toStdString().data());
                 }
                 switch (ipProtocal)
                 {
@@ -204,14 +203,14 @@ void SnifferThread::run()
                         break;
                     }
                     default:
-                        qDebug("We do not resolve the ip protocal: %0x", ipProtocal);
+                        //qDebug("We do not resolve the ip protocal: %0x", ipProtocal);
                         break;
                 }
                 break;
             }
             case ETHERTYPE_ARP:
             {
-                qDebug("Resolve arp header");
+                //qDebug("Resolve arp header");
                 struct ether_arp *arpHeader = (struct ether_arp*)(pPktData + tmpFrameOffset);
                 tmpFrameOffset += sizeof(struct ether_arp);
                 
@@ -234,8 +233,6 @@ void SnifferThread::run()
                 {
                     tmpSnifferData.info = "error op code " + QString::number(op,16);
                 }
-                qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
-                        tmpSnifferData.strDst.toStdString().data());
                 break;
             }
             default:

@@ -71,8 +71,8 @@ void OriginPacketText::setDataText()
 {
     int size = this->rawdata.size();
 
-    qDebug("data is :\n%s", QString(rawdata.toHex()).toAscii().data());
-    qDebug("size is : %d", size);
+    //qDebug("data is :\n%s", QString(rawdata.toHex()).toAscii().data());
+    //qDebug("size is : %d", size);
     QString resStr = "";
 
     int showByteCnt = this->bHex ? 16 : 8;
@@ -124,11 +124,11 @@ void OriginPacketText::setDataText()
            }
 
            resStr += SnifferUtil::byteToChar(this->rawdata[i+j]);
-           qDebug("byte:%x---char:%s", (uint8_t)this->rawdata[i+j], SnifferUtil::byteToChar(this->rawdata[i+j]).toAscii().data());
+           //qDebug("byte:%x---char:%s", (uint8_t)this->rawdata[i+j], SnifferUtil::byteToChar(this->rawdata[i+j]).toAscii().data());
        }
        resStr += "\n";
     }
-    qDebug("data is :\n%s --\n%s", QString(rawdata).toAscii().data(), resStr.toStdString().data());
+    //qDebug("data is :\n%s --\n%s", QString(rawdata).toAscii().data(), resStr.toStdString().data());
 
     this->setText(resStr);
 

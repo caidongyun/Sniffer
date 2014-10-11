@@ -24,6 +24,12 @@
 #include <QTextBlock>
 #include <QSplitter>
 #include <QTextEdit>
+#include <QAction>
+#include <QIcon>
+#include <QToolBar>
+#include <QMenuBar>
+#include <QMenu>
+#include <QKeySequence>
 
 #include "sniffer.h"
 #include "snifferthread.h"
@@ -31,6 +37,7 @@
 #include "snifferutil.h"
 #include "mytableview.h"
 #include "originpacket_text.h"
+#include "prototree.h"
 
 class SnifferThread;
 class MyTableView;
@@ -39,7 +46,14 @@ class QTreeWidget;
 class QTableView;
 class QTextEdit;
 class QSplitter;
+class QAction;
+class QIcon;
+class QToolBar;
+class QMenuBar;
+class QMenu;
+
 class OriginPacketText;
+class ProtoTree;
 
 class MainWindow : public QMainWindow
 {
@@ -54,12 +68,44 @@ public slots:
 
 private:
     void createMainWidget();
+    void createAction();
+    void createMenu();
+    void createToolBar();
+
+private slots:
+    void startCapture();
+    void stopCapture();
+
 
 private:
     MyTableView *tableview;
-    QTreeWidget *treewidget;    
+    ProtoTree *prototree;    
     QSplitter *mainspliter;
     OriginPacketText *packettext;
+
+    // Actions
+    QAction* interfacesAction;          // List the aviliable capture interfaces
+    QAction* captureOptionAction;       // Show the capture interfaces detail
+    QAction* captureStartAction;        // Start a new live capture
+    QAction* captureStopAction;         // Stop the running live caption
+    QAction* openFileAction;            // Open a capture file
+    QAction* saveFileAction;            // Save the capture file
+    QAction* goPreviousPacketAction;    // Go back in packet history
+    QAction* goNextPacketAction;        // Go forward in packet history
+    QAction* goJumpPacketAction;        // Go to the packet With number
+    QAction* goFirstPacketAction;       // Go to the first packet
+    QAction* goLastPacketAction;        // Go to the last packet
+    QAction* zoomInAction;              // Zoom in
+    QAction* zoomOutAction;             // Zoom out
+    QAction* zoomOriginalAction;        // Zoom 100%
+
+    // Toolbar
+    QToolBar* toolbar;                  // The toolbar 
+    QMenuBar* menubar;                  // The menubar
+    QMenu* fileMenu;                    // The file menu
+    QMenu* viewMenu;                    // The view menu
+    QMenu* captureMenu;                 // The capture menu
+    QMenu* goMenu;                      // The go menu
 
     SnifferThread *pSnifferthread;
     Sniffer *pSniffer;

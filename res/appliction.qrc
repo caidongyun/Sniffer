@@ -4,4 +4,22 @@
     <qresource>
        <file>qss/common.qss</file>
     </qresource>
+
+    <!-- toolbar icon -->
+    <qresource>
+        <file>images/capture_interfaces.png</file>
+        <file>images/x-capture-options.png</file>
+        <file>images/x-capture-start.png</file>
+        <file>images/x-capture-start.on.png</file>
+        <file>images/x-capture-stop.png</file>
+        <file>images/x-capture-file-save.png</file>
+        <file>images/go-previous.png</file>
+        <file>images/go-next.png</file>
+        <file>images/go-jump.png</file>
+        <file>images/go-first.png</file>
+        <file>images/go-last.png</file>
+        <file>images/zoom-in.png</file>
+        <file>images/zoom-out.png</file>
+        <file>images/zoom-original.png</file>
+    </qresource>
 </RCC>

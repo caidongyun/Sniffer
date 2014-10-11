@@ -38,7 +38,7 @@ class MyTableView : public QTableView
     Q_OBJECT
 
     public:
-        MyTableView();
+        MyTableView(QWidget* parent=0);
         ~MyTableView();
 
         /* *

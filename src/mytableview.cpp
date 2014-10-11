@@ -18,7 +18,7 @@
 
 #include "../include/mytableview.h"
 
-MyTableView::MyTableView()
+MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
 {
     // Set Table Style
 
@@ -43,7 +43,7 @@ MyTableView::MyTableView()
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->setShowGrid(false);
-    
+     
 }
 
 MyTableView::~MyTableView()
