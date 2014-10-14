@@ -41,13 +41,27 @@ void SnifferThread::run()
 {
     int res = -1;
     bStop = false;
-    char timestr[16];
     QByteArray rawData;
     SnifferData tmpSnifferData;
+    SnifferProtocal* snifferProtocal = NULL;
+    int iLength = 0;
+    QString strTime;
+    QString strSrc;
+    QString strDst;
+    QString info;
+    QString strProtocol;
     while (bStop != true && (res = this->pSniffer->captureOnce()) >= 0)
     {
         int tmpFrameOffset = 0; // The offset of the frame
         
+        // Init the tmp
+        iLength = 0;
+        strTime = "";
+        strSrc = "";
+        strDst = "";
+        info = "";
+        strProtocol = "";
+
         tmpSnifferData.reInit();
         if (res == 0)
         {
@@ -56,21 +70,24 @@ void SnifferThread::run()
 
         rawData.clear();
         rawData.setRawData((const char*)pSniffer->packetData, pSniffer->header->caplen);
-        strftime(timestr, sizeof(timestr), "%H:%M:%S", localtime(&pSniffer->header->ts.tv_sec));
 
         tmpSnifferData.rawData = rawData;
-        tmpSnifferData.iLength = pSniffer->header->caplen;
-        tmpSnifferData.strTime = timestr;
-        tmpSnifferData.strProtocol = "Unknown"; 
+        tmpSnifferData.header = pSniffer->header;
+        iLength = pSniffer->header->caplen;
+        strTime = SnifferUtil::getFormatTime(&pSniffer->header->ts.tv_sec);
+        strProtocol = "Unknown"; 
+
         const u_char* pPktData = pSniffer->packetData;
 
         // Set the ether header
         struct ether_header *tmpEthHeader = (struct ether_header*)(pPktData + tmpFrameOffset);
         tmpFrameOffset += sizeof(struct ether_header);
 
+        tmpSnifferData.protocalVec.append(tmpEthHeader);
+
         // Set the src and dst addr
-        tmpSnifferData.strSrc = SnifferUtil::macToHost(tmpEthHeader->ether_shost);
-        tmpSnifferData.strDst = SnifferUtil::macToHost(tmpEthHeader->ether_dhost);
+        strSrc = SnifferUtil::macToHost(tmpEthHeader->ether_shost);
+        strDst = SnifferUtil::macToHost(tmpEthHeader->ether_dhost);
 
         int tmpProtocal = ntohs(tmpEthHeader->ether_type);
 
@@ -86,9 +103,11 @@ void SnifferThread::run()
                     //qDebug("Resolve ipv4 header:%x" ,tmpProtocal);
                     struct ip* tmpIpHeader = (struct ip*)(pPktData + tmpFrameOffset); // Add the offset of mac header
                     tmpFrameOffset += sizeof(struct ip);
+                    tmpSnifferData.protocalVec.append(tmpIpHeader);
 
-                    tmpSnifferData.strSrc = inet_ntoa(tmpIpHeader->ip_src);
-                    tmpSnifferData.strDst = inet_ntoa(tmpIpHeader->ip_dst);
+
+                    strSrc = inet_ntoa(tmpIpHeader->ip_src);
+                    strDst = inet_ntoa(tmpIpHeader->ip_dst);
                     
                     //qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
                     //        tmpSnifferData.strDst.toStdString().data());
@@ -100,13 +119,14 @@ void SnifferThread::run()
                     //qDebug("Resolve ipv6 header:%x" ,tmpProtocal);
                     struct ip6_hdr* tmpIpHeader = (struct ip6_hdr*)(pPktData + tmpFrameOffset);
                     tmpFrameOffset += sizeof(struct ip6_hdr);
+                    tmpSnifferData.protocalVec.append(tmpIpHeader);
 
                     //char buf[INET6_ADDRSTRLEN];
                     //inet_ntop(AF_INET6,(void *)&tmpIpHeader->ip6_src,buf, INET6_ADDRSTRLEN);
                     ipProtocal = tmpIpHeader->ip6_ctlun.ip6_un1.ip6_un1_nxt;
 
-                    tmpSnifferData.strSrc = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_src);
-                    tmpSnifferData.strDst = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_dst);
+                    strSrc = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_src);
+                    strDst = SnifferUtil::ipV6ToHost(tmpIpHeader->ip6_dst);
 
                     //qDebug("Src:%s--Des:%s", tmpSnifferData.strSrc.toStdString().data(), 
                     //        tmpSnifferData.strDst.toStdString().data());
@@ -118,38 +138,38 @@ void SnifferThread::run()
                         struct tcphdr *tmpTcpHeader = (struct tcphdr*)(pPktData + tmpFrameOffset);
                         tmpFrameOffset += sizeof(struct tcphdr);
 
-                        tmpSnifferData.strProtocol = "TCP";
+                        strProtocol = "TCP";
                         int tcpProtocal = ntohs(tmpTcpHeader->source);
                         switch (tcpProtocal)
                         {
                             case FTP_PORT:
                             {
-                                tmpSnifferData.strProtocol = "FTP";
+                                strProtocol = "FTP";
                                 break;
                             }
                             case TELNET_PORT:
                             {
-                                tmpSnifferData.strProtocol = "TELNET";
+                                strProtocol = "TELNET";
                                 break;
                             }
                             case SMTP_PORT:
                             {
-                                tmpSnifferData.strProtocol = "SMTP";
+                                strProtocol = "SMTP";
                                 break;
                             }
                             case HTTP_PORT:
                             {
-                                tmpSnifferData.strProtocol = "HTTP";
+                                strProtocol = "HTTP";
                                 break;
                             }
                             case HTTPS_PORT:
                             {
-                                tmpSnifferData.strProtocol = "HTTPS";
+                                strProtocol = "HTTPS";
                                 break;
                             }
                             case POP3_PORT:
                             {
-                                tmpSnifferData.strProtocol = "POP3";
+                                strProtocol = "POP3";
                                 break;
                             }
                             default:
@@ -165,18 +185,18 @@ void SnifferThread::run()
                         struct udphdr *tmpUdpHeader = (struct udphdr*)(pPktData + tmpFrameOffset);
                         tmpFrameOffset += sizeof(struct udphdr);
 
-                        tmpSnifferData.strProtocol = "UDP";
+                        strProtocol = "UDP";
                         int udpProtocal = ntohs(tmpUdpHeader->source);
                         switch (udpProtocal)
                         {
                             case DNS_PORT:
                             {
-                                tmpSnifferData.strProtocol = "DNS";
+                                strProtocol = "DNS";
                                 break;
                             }
                             case SNMP_PORT:
                             {
-                                tmpSnifferData.strProtocol = "TCP";
+                                strProtocol = "TCP";
                                 break;
                             }
                             default:
@@ -189,17 +209,17 @@ void SnifferThread::run()
                     }
                     case IPPROTO_ICMP:
                     {
-                        tmpSnifferData.strProtocol = "ICMP";
+                        strProtocol = "ICMP";
                         break;
                     }
                     case IPPROTO_ICMPV6:
                     {
-                        tmpSnifferData.strProtocol = "ICMPV6";
+                        strProtocol = "ICMPV6";
                         break;
                     }
                     case IPPROTO_IGMP:
                     {
-                        tmpSnifferData.strProtocol = "IGMP";
+                        strProtocol = "IGMP";
                         break;
                     }
                     default:
@@ -211,34 +231,35 @@ void SnifferThread::run()
             case ETHERTYPE_ARP:
             {
                 //qDebug("Resolve arp header");
-                struct ether_arp *arpHeader = (struct ether_arp*)(pPktData + tmpFrameOffset);
+                struct ether_arp *tmpArpHeader = (struct ether_arp*)(pPktData + tmpFrameOffset);
                 tmpFrameOffset += sizeof(struct ether_arp);
+                tmpSnifferData.protocalVec.append(tmpArpHeader);
                 
-                tmpSnifferData.strProtocol = "ARP";
+                strProtocol = "ARP";
 
-                unsigned short int op = ntohs(arpHeader->ea_hdr.ar_op);
+                unsigned short int op = ntohs(tmpArpHeader->ea_hdr.ar_op);
                 if (op == 0x1)
                 {
                     // arp Request 
-                    tmpSnifferData.info = "Gratuitous ARP for " + SnifferUtil::netToIp(arpHeader->arp_spa)
+                    info = "Gratuitous ARP for " + SnifferUtil::netToIp(tmpArpHeader->arp_spa)
                         + "(Request)";
                 }
                 else if (op == 0x2)
                 {
                     // arp reply
-                    tmpSnifferData.info = "Who has " + SnifferUtil::netToIp(arpHeader->arp_spa) +
-                        "? Tell" + SnifferUtil::netToIp(arpHeader->arp_tpa);
+                    info = "Who has " + SnifferUtil::netToIp(tmpArpHeader->arp_spa) +
+                        "? Tell" + SnifferUtil::netToIp(tmpArpHeader->arp_tpa);
                 }
                 else
                 {
-                    tmpSnifferData.info = "error op code " + QString::number(op,16);
+                    info = "error op code " + QString::number(op,16);
                 }
                 break;
             }
             default:
             {
                 canResolve = false;
-                qDebug("We do not resolve the mac type: %0x", tmpProtocal);
+                qDebug("Current the sniffer can not analysis the ethernet type:%0x", tmpProtocal);
                 break;
             }
 
@@ -246,9 +267,9 @@ void SnifferThread::run()
         if (canResolve)
         {
             pSniffer->snifferDataVector.append(tmpSnifferData);
-            emit addPacketItem(tmpSnifferData.strTime, tmpSnifferData.strSrc,
-                    tmpSnifferData.strDst, tmpSnifferData.strProtocol,
-                    tmpSnifferData.iLength, tmpSnifferData.info);
+            emit addPacketItem(strTime, strSrc,
+                    strDst, strProtocol,
+                    iLength, info);
         }
 
     }

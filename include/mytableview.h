@@ -45,6 +45,12 @@ class MyTableView : public QTableView
          * Clear all the data in the tableview
          * */
         void clearData();
+
+        /* *
+         * Get the model of the tableview
+         * */
+        QStandardItemModel* getModel();
+
     public slots:
         /**
          * Add the sniffer data to the tableview

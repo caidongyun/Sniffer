@@ -99,6 +99,34 @@ class SnifferUtil
             return res;
         }
 
+        static QString getFormatTime(const time_t* t)
+        {
+            char timestr[16];
+            strftime(timestr, sizeof(timestr), "%H:%M:%S", localtime(t));
+
+            return QString(timestr);
+        }
+
+        static QString getFormatTimeCST(const time_t* t)
+        {
+            char timestr[50];
+            //strftime(timestr, sizeof(timestr), "%Y%m%d%H%M%S", localtime(t));
+
+            sprintf(timestr,"%s",asctime(localtime(t)));
+            QString res = timestr;
+            res = res.remove(res.size()-1,1) ;  // Remove the last /n
+            return res;
+        }
+
+        /* *
+         * Get the ith bit 
+         * Such as 10001001, The 4th bit is 1, index start with 0, count from left
+         * */
+        static int getBit(u_int8_t byte, int index)
+        {
+            return (byte >> (8-index)) & 0x01;
+        }
+
         static void logHandler(QtMsgType type, const char *msg)
         {
             QString strLog;

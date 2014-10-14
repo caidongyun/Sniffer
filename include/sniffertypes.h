@@ -20,6 +20,11 @@
 
 #include <QtCore/QString>
 #include <QtCore/QByteArray>
+#include <QtCore/QVector>
+
+#include <pcap.h>
+
+#include <time.h>
 #include <netinet/ether.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
@@ -113,30 +118,42 @@
 //        struct ether_arp *pArpHeader;
 //    } netHeader; // The net header, including the arp header and ip header.
 //} DetailPacketAnalysis, *PDetailPacketAnalysis;
+class SnifferProtocal
+{
+    public:
+        QString strProtocal;    // The protocal name like ip, ether
+        void* pProtocal;        // The protocal data struct, such as ip protocal 
+                                // it pointer to the struct ip 
+};
+
 
 class SnifferData
 {
     public:
-        QString strTime;      // The time that the packet been sniffer
-        QString strSrc;       // The source 
-        QString strDst;       // The destination 
-        QString strProtocol;  // The protocal
-        int iLength;          // The length of tha data
-        QString info;         // Some short info about the data
-        QByteArray rawData;   // The raw data
+        struct pcap_pkthdr* header;     // the header of the captured data
+        QByteArray rawData;             // The raw data
+        QVector<void*> protocalVec;
         //DetailPacketAnalysis detailAnalysis;
-        
+    
+        SnifferData()
+        {
+            rawData = NULL;
+            header = NULL;
+        };
         void reInit()
         {
-            strTime = "";
-            strSrc = "";
-            strDst = "";
-            strProtocol = "";
-            iLength = 0;
-            info = "";
             rawData = NULL;
+            header = NULL;
+            protocalVec.clear();
         }
 };
+
+
+namespace SnifferType
+{
+    const QString ETHER_PROTOCAL = "ether";
+    const QString IP_PROTOCAL = "ip";
+}
 
 // TCP protocal
 #define FTP_PORT        (21)

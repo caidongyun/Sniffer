@@ -22,6 +22,7 @@
 #include <QStandardItemModel>
 #include "sniffertypes.h"
 #include "prototree.h"
+#include "snifferutil.h"
 
 
 class AnalysisThread : public QThread
@@ -33,13 +34,27 @@ class AnalysisThread : public QThread
         AnalysisThread();
         ~AnalysisThread();
         void run();
-        void anslysisData(const SnifferData& snifferData, int row);
+        void anslysisData(const SnifferData& snifferData, int frameIndex);
 
     private:
         // Add the frame outline node in the prototree
-        QStandardItem* addFrameNode(const SnifferData& snifferData, int row);
+        void addFrameNode(int frameIndex);
+
+        // Add the ether node
+        void addEtherNode(int protoInd);
+
+        // Add ip node
+        void addIpNode(int protoInd);
+
+        // Add ipv6 node
+        void addIpV6Node(int protoInd);
+
+        // Add arp node
+        void addArpNode(int protoInd);
 
         QStandardItemModel* model;
+        SnifferData snifferData;
+        int irow;
 };
 
 #endif

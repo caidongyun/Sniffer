@@ -22,20 +22,10 @@ MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
 {
     // Set Table Style
 
-    this->iPos = 0;
     this->model = new QStandardItemModel();
-    this->model->setColumnCount(7);
-    model->setHeaderData(0,Qt::Horizontal,tr("No."));
-    model->setHeaderData(1,Qt::Horizontal,tr("Time"));
-    model->setHeaderData(2,Qt::Horizontal,tr("Source"));
-    model->setHeaderData(3,Qt::Horizontal,tr("Destination"));
-    model->setHeaderData(4,Qt::Horizontal,tr("Protocal"));
-    model->setHeaderData(5,Qt::Horizontal,tr("Length"));
-    model->setHeaderData(6,Qt::Horizontal,tr("Info"));
 
     this->setModel(this->model);
-    this->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    this->horizontalHeader()->setResizeMode(6,QHeaderView::Stretch);
+    this->clearData();
     this->verticalHeader()->setVisible(false);
 
     // Set single row selection and not editable
@@ -48,7 +38,7 @@ MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
 
 MyTableView::~MyTableView()
 {
-
+    
 }
 
 
@@ -78,6 +68,23 @@ void MyTableView::addPacketItem(QString strTime, QString strSrc,
 
 void MyTableView::clearData()
 {
-    this->model->clear();
     this->iPos = 0;
+    this->model->clear();
+    this->model->setColumnCount(7);
+    model->setHeaderData(0,Qt::Horizontal,tr("No."));
+    model->setHeaderData(1,Qt::Horizontal,tr("Time"));
+    model->setHeaderData(2,Qt::Horizontal,tr("Source"));
+    model->setHeaderData(3,Qt::Horizontal,tr("Destination"));
+    model->setHeaderData(4,Qt::Horizontal,tr("Protocal"));
+    model->setHeaderData(5,Qt::Horizontal,tr("Length"));
+    model->setHeaderData(6,Qt::Horizontal,tr("Info"));
+
+
+    this->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    this->horizontalHeader()->setResizeMode(6,QHeaderView::Stretch);
+}
+
+QStandardItemModel* MyTableView::getModel()
+{
+    return this->model;
 }

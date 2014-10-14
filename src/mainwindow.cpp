@@ -37,7 +37,7 @@ MainWindow::MainWindow()
                     "<li>您的杀毒软件或者防火墙阻止本软件运行</li></ul>"), 
                     QMessageBox::Ok);
     }
-    this->pSniffer->openNetDev(0);
+    this->pSniffer->openNetDev(6);
 }
 
 MainWindow::~MainWindow()
@@ -223,6 +223,11 @@ void MainWindow::startCapture()
     this->pSnifferthread = new SnifferThread(pSniffer, this->tableview);
     connect(this->pSnifferthread,SIGNAL(addPacketItem(QString, QString, QString,QString, int, QString)),
             this->tableview,SLOT(addPacketItem(QString, QString, QString,QString, int, QString)));
+
+    // Clear the data
+    this->pSniffer->snifferDataVector.clear();
+    this->tableview->clearData();
+
     this->pSnifferthread->start();
 }
 
