@@ -52,6 +52,18 @@ class AnalysisThread : public QThread
         // Add arp node
         void addArpNode(int protoInd);
 
+        // Add tcp node
+        void addTcpNode(int protoInd);
+
+        // Add udp Node
+        void addUdpNode(int protoInd);
+
+        // Add Icmp node
+        void addIcmpNode(int protoInd);
+
+        // Add igmp node
+        void addIgmpNode(int protoInd);
+
         QStandardItemModel* model;
         SnifferData snifferData;
         int irow;

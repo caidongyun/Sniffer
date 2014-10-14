@@ -132,7 +132,7 @@ class SnifferData
     public:
         struct pcap_pkthdr* header;     // the header of the captured data
         QByteArray rawData;             // The raw data
-        QVector<void*> protocalVec;
+        QVector<SnifferProtocal*> protocalVec;
         //DetailPacketAnalysis detailAnalysis;
     
         SnifferData()
@@ -153,6 +153,8 @@ namespace SnifferType
 {
     const QString ETHER_PROTOCAL = "ether";
     const QString IP_PROTOCAL = "ip";
+    const QString IPV6_PROTOCAL = "ipv6";
+    const QString ARP_PROTOCAL = "arp";
 }
 
 // TCP protocal

@@ -245,7 +245,7 @@ void MainWindow::stopCapture()
 
 void MainWindow::tableviewSelect( const QItemSelection & selected)
 {
-    int row = selected.indexes().first().row();
+    int row = selected.indexes().at(0).row();
 
     this->packettext->addData(this->pSniffer->snifferDataVector.at(row).rawData); 
     this->prototree->startAnalysis(this->pSniffer->snifferDataVector.at(row), row+1);

@@ -25,6 +25,9 @@ ProtoTree::ProtoTree(QWidget* parent) : QTreeView(parent)
     this->setHeaderHidden(true);
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // Set style
+    this->setStyleSheet(QString("font: mono"));
+
     this->analysisThread = new AnalysisThread(this->model);
     this->analysisThread->start();
 }

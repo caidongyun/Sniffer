@@ -23,9 +23,7 @@
 #include <QtCore/QtDebug>
 #include <QtCore/QDateTime>
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netinet/ether.h>
+#include "sniffertypes.h"
 
 #define LOGFILEMAX 10000
 
@@ -82,6 +80,90 @@ class SnifferUtil
                 qDebug("Please input the base 2 or 16");
                 return QString("");
             }
+        }
+
+        // The ip header ECN bits
+        static QString getECNDesc(u_int8_t byte)
+        {
+            QString res = "";
+            switch(IPTOS_ECN(byte))
+            {
+                case IPTOS_ECN_NOT_ECT:
+                    res += "IPTOS_ECN_NOT_ECT";
+                    break;
+                case IPTOS_ECN_ECT1:
+                    res += "IPTOS_ECN_ECT1";
+                    break;
+                case IPTOS_ECN_ECT0:
+                    res += "IPTOS_ECN_ECT0";
+                    break;
+                case IPTOS_ECN_CE:
+                    res += "IPTOS_ECN_CE";
+                    break;
+                default:
+                    qDebug("Invalid ECN bits");
+                    break;
+            }
+            return res;
+        }
+
+        static void* mallocMem(void* src, int size)
+        {
+            void* res = new uint8_t[size];
+            memcpy(res, src, size);
+            return res;
+        }
+
+        static QString getDSCPDesc(uint8_t byte)
+        {
+            QString res = "";
+            switch(IPTOS_DSCP(byte))
+            {
+                case IPTOS_DSCP_AF11:
+                    res += "IPTOS_DSCP_AF11";
+                    break;
+                case IPTOS_DSCP_AF12:
+                    res += "IPTOS_DSCP_AF12";
+                    break;
+                case IPTOS_DSCP_AF13:
+                    res += "IPTOS_DSCP_AF13";
+                    break;
+                case IPTOS_DSCP_AF21:
+                    res += "IPTOS_DSCP_AF21";
+                    break;
+                case IPTOS_DSCP_AF22:
+                    res += "IPTOS_DSCP_AF22";
+                    break;
+                case IPTOS_DSCP_AF23:
+                    res += "IPTOS_DSCP_AF23";
+                    break;
+                case IPTOS_DSCP_AF31:
+                    res += "IPTOS_DSCP_AF31";
+                    break;
+                case IPTOS_DSCP_AF32:
+                    res += "IPTOS_DSCP_AF32";
+                    break;
+                case IPTOS_DSCP_AF33:
+                    res += "IPTOS_DSCP_AF33";
+                    break;
+                case IPTOS_DSCP_AF41:
+                    res += "IPTOS_DSCP_AF41";
+                    break;
+                case IPTOS_DSCP_AF42:
+                    res += "IPTOS_DSCP_AF42";
+                    break;
+                case IPTOS_DSCP_AF43:
+                    res += "IPTOS_DSCP_AF43";
+                    break;
+                case IPTOS_DSCP_EF:
+                    res += "IPTOS_DSCP_EF";
+                    break;
+                default:
+                    qDebug("Invalid DSCP bits");
+                    break;
+            }
+
+            return res;
         }
 
         static QString byteToChar(QByteRef byte)

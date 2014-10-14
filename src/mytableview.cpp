@@ -29,8 +29,8 @@ MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
     this->verticalHeader()->setVisible(false);
 
     // Set single row selection and not editable
-    this->setSelectionMode(QAbstractItemView::SingleSelection);
     this->setSelectionBehavior(QAbstractItemView::SelectRows);
+    this->setSelectionMode(QAbstractItemView::SingleSelection);
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
     this->setShowGrid(false);
      

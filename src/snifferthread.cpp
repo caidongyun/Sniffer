@@ -72,7 +72,11 @@ void SnifferThread::run()
         rawData.setRawData((const char*)pSniffer->packetData, pSniffer->header->caplen);
 
         tmpSnifferData.rawData = rawData;
-        tmpSnifferData.header = pSniffer->header;
+        
+        void* pheader = new uint8_t[sizeof(struct pcap_pkthdr)];
+        tmpSnifferData.header = (struct pcap_pkthdr*)pheader;
+        memcpy(pheader, pSniffer->header, sizeof(*pSniffer->header));
+
         iLength = pSniffer->header->caplen;
         strTime = SnifferUtil::getFormatTime(&pSniffer->header->ts.tv_sec);
         strProtocol = "Unknown"; 
@@ -83,7 +87,10 @@ void SnifferThread::run()
         struct ether_header *tmpEthHeader = (struct ether_header*)(pPktData + tmpFrameOffset);
         tmpFrameOffset += sizeof(struct ether_header);
 
-        tmpSnifferData.protocalVec.append(tmpEthHeader);
+        snifferProtocal = new SnifferProtocal();
+        snifferProtocal->strProtocal = SnifferType::ETHER_PROTOCAL;
+        snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpEthHeader, sizeof(struct ether_header));
+        tmpSnifferData.protocalVec.append(snifferProtocal);
 
         // Set the src and dst addr
         strSrc = SnifferUtil::macToHost(tmpEthHeader->ether_shost);
@@ -103,7 +110,10 @@ void SnifferThread::run()
                     //qDebug("Resolve ipv4 header:%x" ,tmpProtocal);
                     struct ip* tmpIpHeader = (struct ip*)(pPktData + tmpFrameOffset); // Add the offset of mac header
                     tmpFrameOffset += sizeof(struct ip);
-                    tmpSnifferData.protocalVec.append(tmpIpHeader);
+                    snifferProtocal = new SnifferProtocal();
+                    snifferProtocal->strProtocal = SnifferType::IP_PROTOCAL;
+                    snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpIpHeader, sizeof(struct ip));
+                    tmpSnifferData.protocalVec.append(snifferProtocal);
 
 
                     strSrc = inet_ntoa(tmpIpHeader->ip_src);
@@ -119,7 +129,10 @@ void SnifferThread::run()
                     //qDebug("Resolve ipv6 header:%x" ,tmpProtocal);
                     struct ip6_hdr* tmpIpHeader = (struct ip6_hdr*)(pPktData + tmpFrameOffset);
                     tmpFrameOffset += sizeof(struct ip6_hdr);
-                    tmpSnifferData.protocalVec.append(tmpIpHeader);
+                    snifferProtocal = new SnifferProtocal();
+                    snifferProtocal->strProtocal = SnifferType::IPV6_PROTOCAL;
+                    snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpIpHeader, sizeof(struct ip6_hdr));
+                    tmpSnifferData.protocalVec.append(snifferProtocal);
 
                     //char buf[INET6_ADDRSTRLEN];
                     //inet_ntop(AF_INET6,(void *)&tmpIpHeader->ip6_src,buf, INET6_ADDRSTRLEN);
@@ -233,7 +246,11 @@ void SnifferThread::run()
                 //qDebug("Resolve arp header");
                 struct ether_arp *tmpArpHeader = (struct ether_arp*)(pPktData + tmpFrameOffset);
                 tmpFrameOffset += sizeof(struct ether_arp);
-                tmpSnifferData.protocalVec.append(tmpArpHeader);
+
+                snifferProtocal = new SnifferProtocal();
+                snifferProtocal->strProtocal = SnifferType::ARP_PROTOCAL;
+                snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpArpHeader, sizeof(struct ether_arp));
+                tmpSnifferData.protocalVec.append(snifferProtocal);
                 
                 strProtocol = "ARP";
 
@@ -241,14 +258,21 @@ void SnifferThread::run()
                 if (op == 0x1)
                 {
                     // arp Request 
-                    info = "Gratuitous ARP for " + SnifferUtil::netToIp(tmpArpHeader->arp_spa)
-                        + "(Request)";
+                    if (SnifferUtil::netToIp(tmpArpHeader->arp_spa) == 
+                            SnifferUtil::netToIp(tmpArpHeader->arp_tpa))
+                    {
+                        info = "Gratuitous ARP for " + SnifferUtil::netToIp(tmpArpHeader->arp_spa)
+                            + "(Request)";
+                    }
+                    else
+                    {
+                        info = "Who has " + SnifferUtil::netToIp(tmpArpHeader->arp_tpa) +
+                            "? Tell:" + SnifferUtil::netToIp(tmpArpHeader->arp_spa);
+                    }
                 }
                 else if (op == 0x2)
                 {
                     // arp reply
-                    info = "Who has " + SnifferUtil::netToIp(tmpArpHeader->arp_spa) +
-                        "? Tell" + SnifferUtil::netToIp(tmpArpHeader->arp_tpa);
                 }
                 else
                 {
@@ -267,6 +291,7 @@ void SnifferThread::run()
         if (canResolve)
         {
             pSniffer->snifferDataVector.append(tmpSnifferData);
+            
             emit addPacketItem(strTime, strSrc,
                     strDst, strProtocol,
                     iLength, info);
