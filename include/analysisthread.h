@@ -20,10 +20,13 @@
 
 #include <QtCore/QThread>
 #include <QStandardItemModel>
+
 #include "sniffertypes.h"
 #include "prototree.h"
 #include "snifferutil.h"
 
+#define ROLE_OFFSET Qt::UserRole + 1
+#define ROLE_LEN Qt::UserRole + 2
 
 class AnalysisThread : public QThread
 {
@@ -37,6 +40,9 @@ class AnalysisThread : public QThread
         void anslysisData(const SnifferData& snifferData, int frameIndex);
 
     private:
+        // Add role value to the node
+        void setUserRoleData(QStandardItem* item);
+
         // Add the frame outline node in the prototree
         void addFrameNode(int frameIndex);
 
@@ -66,7 +72,10 @@ class AnalysisThread : public QThread
 
         QStandardItemModel* model;
         SnifferData snifferData;
-        int irow;
+        int irow;     // The row index of current processed node
+
+        int offset;   // The offset of current processed node
+        int len;      // The len of current processed node
 };
 
 #endif

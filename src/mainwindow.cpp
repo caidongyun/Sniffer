@@ -44,7 +44,7 @@ MainWindow::~MainWindow()
 {
     if (this->pSniffer)
     {
-        delete this->pSniffer;
+        this->pSniffer->deleteLater();
         this->pSniffer = NULL;
     }
     if (this->pSnifferthread)
@@ -64,9 +64,11 @@ void MainWindow::createMainWidget()
     this->tableview = new MyTableView(this);
     this->prototree = new ProtoTree(this);
     this->packettext = new OriginPacketText(this);
+    this->filteredit = new FilterLineEdit(this);
 
     this->mainspliter = new QSplitter(Qt::Vertical,this);
 
+    this->mainspliter->addWidget(this->filteredit);
     this->mainspliter->addWidget(this->tableview);
     this->mainspliter->addWidget(this->prototree);
     this->mainspliter->addWidget(this->packettext);
@@ -77,6 +79,16 @@ void MainWindow::createMainWidget()
     QObject::connect(this->tableview->selectionModel(), 
             SIGNAL(selectionChanged( const QItemSelection&, const QItemSelection&)),
             this, SLOT(tableviewSelect(const QItemSelection&)));
+
+
+    // Bind the prototree selection
+    QObject::connect(this->prototree->selectionModel(),
+            SIGNAL(selectionChanged( const QItemSelection&, const QItemSelection&)),
+            this, SLOT(prototreeSelectChanged(const QItemSelection&)));
+    
+    // Binding searchlinetext returnPressed
+    QObject::connect(this->filteredit,SIGNAL(returnPressed()),
+            this, SLOT(searchFilter()));
 }
 
 void MainWindow::createAction()
@@ -249,4 +261,20 @@ void MainWindow::tableviewSelect( const QItemSelection & selected)
 
     this->packettext->addData(this->pSniffer->snifferDataVector.at(row).rawData); 
     this->prototree->startAnalysis(this->pSniffer->snifferDataVector.at(row), row+1);
+}
+
+void MainWindow::prototreeSelectChanged(const QItemSelection& selected)
+{
+    QModelIndex index = selected.indexes().at(0);
+    
+    this->packettext->setSelection(index.data(ROLE_OFFSET).value<int>(),
+            index.data(ROLE_LEN).value<int>());
+    QMessageBox::information(this, "info", QString("offset:%1--len:%2")
+            .arg(index.data(ROLE_OFFSET).value<int>())
+            .arg(index.data(ROLE_LEN).value<int>()));
+}
+
+void MainWindow::searchFilter()
+{
+    this->tableview->setFilterString(this->filteredit->getFilterText());
 }

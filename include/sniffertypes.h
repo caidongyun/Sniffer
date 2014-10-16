@@ -127,7 +127,7 @@ class SnifferProtocal
 };
 
 
-class SnifferData
+struct SnifferData
 {
     public:
         struct pcap_pkthdr* header;     // the header of the captured data
@@ -140,6 +140,7 @@ class SnifferData
             rawData = NULL;
             header = NULL;
         };
+
         void reInit()
         {
             rawData = NULL;

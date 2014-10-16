@@ -36,13 +36,22 @@ void AnalysisThread::anslysisData(const SnifferData& snifferData, int frameIndex
 {
     this->model->clear();
     this->irow = 0;
+    this->offset = 0;
+    this->len = 0;
 
     this->snifferData = snifferData;
     addFrameNode(frameIndex);
 }
 
+void AnalysisThread::setUserRoleData(QStandardItem* item)
+{
+    item->setData(this->offset, ROLE_OFFSET);
+    item->setData(this->len, ROLE_LEN);
+}
+
 void AnalysisThread::addFrameNode(int frameIndex)
 {
+    this->len = snifferData.rawData.size();
     QStandardItem *frameitem = new QStandardItem();
     frameitem->setText(QString("Frame %1: %2 bytes on wire (%3 bits),"
                 "%4 bytes captured (%5 bits)"
@@ -51,28 +60,35 @@ void AnalysisThread::addFrameNode(int frameIndex)
                  .arg(snifferData.header->len * 8)
                  .arg(snifferData.header->caplen)
                  .arg(snifferData.header->caplen * 8));
+    setUserRoleData(frameitem);
+
 
     QStandardItem *item = new QStandardItem();
     item->setText(QString("Encapsulation: %1").arg("Ethernet"));
+    setUserRoleData(item);
     frameitem->appendRow(item);
 
     item = new QStandardItem();
     item->setText(QString("Arrival time: %1 CST").
             arg(SnifferUtil::getFormatTimeCST(&snifferData.header->ts.tv_sec)));
+    setUserRoleData(item);
     frameitem->appendRow(item);
 
     item = new QStandardItem();
     item->setText(QString("Frame Number: %1").arg(frameIndex));
+    setUserRoleData(item);
     frameitem->appendRow(item);
 
     item = new QStandardItem();
     item->setText(QString("Frame Length: %1 bytes (%2 bits)").
             arg(snifferData.header->len).arg(snifferData.header->len * 8));
+    setUserRoleData(item);
     frameitem->appendRow(item);
 
     item = new QStandardItem();
     item->setText(QString("Capture Length: %1 bytes (%2 bits)").
             arg(snifferData.header->caplen).arg(snifferData.header->caplen * 8));
+    setUserRoleData(item);
     frameitem->appendRow(item);
 
     // The Frame outline tree node
@@ -85,6 +101,9 @@ void AnalysisThread::addEtherNode(int protoInd)
     SnifferProtocal* psp = this->snifferData.protocalVec.at(protoInd);
     struct ether_header* pether_header = (struct ether_header *)psp->pProtocal;
     QStandardItem* etheritem = new QStandardItem();
+    this->offset = 0;
+    this->len = sizeof(struct ether_header);
+    setUserRoleData(etheritem);
     
     QString tmpmacDst = SnifferUtil::macToHost(pether_header->ether_dhost);
     QString tmpmacSrc = SnifferUtil::macToHost(pether_header->ether_shost);
@@ -96,13 +115,16 @@ void AnalysisThread::addEtherNode(int protoInd)
     // Destination
     QStandardItem* item = new QStandardItem();
     item->setText("Destination: " + tmpmacDst);
+    this->len = sizeof(pether_header->ether_dhost);
+    setUserRoleData(item);
     
     QStandardItem* childitem = new QStandardItem();
+    this->len = sizeof(pether_header->ether_dhost);
+    setUserRoleData(childitem);
     childitem->setText("Address: " + tmpmacDst);
     item->appendRow(childitem);
 
     childitem = new QStandardItem();
-
     if (SnifferUtil::getBit(pether_header->ether_dhost[1], 6))
     {
         childitem->setText(QString(".... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)"));
@@ -111,6 +133,8 @@ void AnalysisThread::addEtherNode(int protoInd)
     {
         childitem->setText(QString(".... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)"));
     }
+    this->len = 3;
+    setUserRoleData(childitem);
     item->appendRow(childitem);
 
     childitem = new QStandardItem();
@@ -123,14 +147,20 @@ void AnalysisThread::addEtherNode(int protoInd)
         childitem->setText(QString(".... ...0 .... .... .... .... = IG bit: Individual address (unicast)"));
     }
 
+    setUserRoleData(childitem);
     item->appendRow(childitem);
     etheritem->appendRow(item);
+    this->offset += sizeof(pether_header->ether_dhost);
 
     // Source 
     item = new QStandardItem();
     item->setText("Source: " + tmpmacSrc);
+    this->len = sizeof(pether_header->ether_shost);
+    setUserRoleData(item);
     
     childitem = new QStandardItem();
+    this->len = sizeof(pether_header->ether_shost);
+    setUserRoleData(childitem);
     childitem->setText("Address: " + tmpmacSrc);
     item->appendRow(childitem);
 
@@ -144,6 +174,8 @@ void AnalysisThread::addEtherNode(int protoInd)
     {
         childitem->setText(QString(".... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)"));
     }
+    this->len = 3;
+    setUserRoleData(childitem);
     item->appendRow(childitem);
 
     childitem = new QStandardItem();
@@ -156,11 +188,15 @@ void AnalysisThread::addEtherNode(int protoInd)
         childitem->setText(QString(".... ...0 .... .... .... .... = IG bit: Individual address (unicast)"));
     }
 
+    setUserRoleData(childitem);
     item->appendRow(childitem);
+
     etheritem->appendRow(item);
+    this->offset += sizeof(pether_header->ether_shost);
 
     // Get the protocal type
-    int type = ntohs(pether_header->ether_type); 
+    int type = ntohs(pether_header->ether_type);
+    this->len = sizeof(pether_header->ether_type);
 
     switch(type)
     {
@@ -168,7 +204,9 @@ void AnalysisThread::addEtherNode(int protoInd)
         {
             item = new QStandardItem();
             item->setText(QString("Type: IP (0x%1)").arg(type,4, 16,QLatin1Char('0')));
+            setUserRoleData(item);
             etheritem->appendRow(item);
+            this->offset += this->len;
             this->model->setItem(this->irow++, 0, etheritem);   
 
             addIpNode(protoInd+1);
@@ -180,6 +218,8 @@ void AnalysisThread::addEtherNode(int protoInd)
             item->setText(QString("Type: IPV6 (0x%1)").arg(type,4, 16,QLatin1Char('0')));
             etheritem->appendRow(item);
             this->model->setItem(this->irow++, 0, etheritem);   
+            setUserRoleData(item);
+            this->offset += this->len;
 
             addIpV6Node(protoInd+1);
             break;
@@ -188,8 +228,10 @@ void AnalysisThread::addEtherNode(int protoInd)
         {
             item = new QStandardItem();
             item->setText(QString("Type: ARP (0x%1)").arg(type,4, 16,QLatin1Char('0')));
+            setUserRoleData(item);
             etheritem->appendRow(item);
             this->model->setItem(this->irow++, 0, etheritem);   
+            this->offset += this->len;
 
             addArpNode(protoInd+1);
             break;

@@ -23,9 +23,12 @@ MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
     // Set Table Style
 
     this->model = new QStandardItemModel();
+    this->proxyModel = new QSortFilterProxyModel();
 
-    this->setModel(this->model);
     this->clearData();
+
+    this->proxyModel->setSourceModel(this->model);
+    this->setModel(this->proxyModel);
     this->verticalHeader()->setVisible(false);
 
     // Set single row selection and not editable
@@ -79,12 +82,75 @@ void MyTableView::clearData()
     model->setHeaderData(5,Qt::Horizontal,tr("Length"));
     model->setHeaderData(6,Qt::Horizontal,tr("Info"));
 
+    QHeaderView* header = this->horizontalHeader();
+    header->setDefaultAlignment(Qt::AlignLeft);
+    header->setResizeMode(6,QHeaderView::Stretch);
 
-    this->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    this->horizontalHeader()->setResizeMode(6,QHeaderView::Stretch);
+    header->setSortIndicator(0, Qt::AscendingOrder);
+    header->setSortIndicatorShown(true);
+    header->setClickable(true);
+    connect(header, SIGNAL(sectionClicked(int)), this, SLOT (sortByColumn(int))); 
 }
 
 QStandardItemModel* MyTableView::getModel()
 {
     return this->model;
+}
+
+void MyTableView::setFilterString(QString strFilter)
+{
+
+    if (strFilter.simplified() == "")
+    {
+        this->proxyModel->setFilterRegExp(QRegExp());
+        return;
+    }
+
+    QStringList sl = strFilter.split("="); 
+    
+    if (sl.size() != 2)
+    {
+        QMessageBox::critical(this, "Error", 
+                "Error format", QMessageBox::Ok);
+        return;
+    }
+
+    QString columnStr = sl.at(0).simplified();
+    QString columnValueStr = sl.at(1).simplified();
+
+    int column = 0;
+    if (columnStr == "src")
+    {
+        column = 2;
+    }
+    else if (columnStr == "dest")
+    {
+        column = 3;
+    }
+    else if (columnStr == "protocol")
+    {
+        column = 4;
+    }
+    else if (columnStr == "info")
+    {
+        column = 6;
+    }
+    else
+    {
+        QMessageBox::critical(this, "Error", 
+                "No such column:" + columnStr, QMessageBox::Ok);
+        return;
+    }
+
+    this->proxyModel->setFilterRegExp(QRegExp(columnValueStr, Qt::CaseInsensitive, QRegExp::FixedString));
+    this->proxyModel->setFilterKeyColumn(column);
+}
+
+void MyTableView::startFilter(int column, QString filter)
+{
+    QList<QStandardItem*> res = this->model->findItems(filter, Qt::MatchContains, column); 
+    QStandardItem *item;
+    foreach (item,res)
+    {
+    }
 }

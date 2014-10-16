@@ -166,7 +166,7 @@ class SnifferUtil
             return res;
         }
 
-        static QString byteToChar(QByteRef byte)
+        static QString byteToChar(const QByteRef byte)
         {
             QString res = "";
             if (byte > (char)32 && byte < (char)127)

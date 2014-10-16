@@ -25,6 +25,7 @@
 #include <QAction>
 #include <QContextMenuEvent>
 
+#include <memory.h>
 #include "../include/snifferutil.h"
 
 class QMenu;
@@ -39,6 +40,11 @@ class OriginPacketText : public QTextEdit
     
         void addData(const QByteArray&);
 
+        /* *
+         * Set the selection text
+         * */
+        void setSelection(int offset ,int len);
+
     private slots:
         void hexView();
         void bitsView();
@@ -49,7 +55,18 @@ class OriginPacketText : public QTextEdit
          * */
         void setDataText();
 
+
         void createContextMenu();
+
+        /* *
+         * The offset byte position
+         * */
+        int positionOfByteOffset(int offset);
+
+        /* *
+         * The offset char position
+         * */
+        int positionOfCharOffset(int offset);
 
         // Is hex view or bits view
         // The hex view will show 16 bytes while bits view show 8 bytes

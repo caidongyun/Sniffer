@@ -24,6 +24,8 @@
 #include <QStandardItem>
 #include <QHeaderView>
 #include <QAbstractItemView>
+#include <QMessageBox>
+#include <QSortFilterProxyModel>
 
 #include "sniffertypes.h"
 
@@ -51,6 +53,16 @@ class MyTableView : public QTableView
          * */
         QStandardItemModel* getModel();
 
+        /* *
+         * Filter the table
+         * */
+        void setFilterString(QString strFilter);
+
+        /* *
+         * Filter the table
+         * */
+        void startFilter(int column, QString filter);
+
     public slots:
         /**
          * Add the sniffer data to the tableview
@@ -63,6 +75,7 @@ class MyTableView : public QTableView
 
     private:
         QStandardItemModel *model;
+        QSortFilterProxyModel *proxyModel;
         int iPos; // The postion of current row
 };
 

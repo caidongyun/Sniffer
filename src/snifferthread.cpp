@@ -55,6 +55,7 @@ void SnifferThread::run()
         int tmpFrameOffset = 0; // The offset of the frame
         
         // Init the tmp
+        tmpSnifferData.reInit();
         iLength = 0;
         strTime = "";
         strSrc = "";
@@ -62,15 +63,15 @@ void SnifferThread::run()
         info = "";
         strProtocol = "";
 
-        tmpSnifferData.reInit();
         if (res == 0)
         {
             continue;
         }
 
         rawData.clear();
-        rawData.setRawData((const char*)pSniffer->packetData, pSniffer->header->caplen);
-
+        void* pdata = new uint8_t[pSniffer->header->caplen];
+        memcpy(pdata, pSniffer->packetData, pSniffer->header->caplen);
+        rawData.setRawData((const char*)pdata, pSniffer->header->caplen);
         tmpSnifferData.rawData = rawData;
         
         void* pheader = new uint8_t[sizeof(struct pcap_pkthdr)];

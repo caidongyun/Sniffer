@@ -31,7 +31,9 @@ SOURCES += src/main.cpp\
         src/prototree.cpp\
         src/mytableview.cpp\
         src/mainwindow.cpp\
-        src/originpacket_text.cpp
+        src/originpacket_text.cpp\
+        src/filterlineedit.cpp\
+        src/treeitem.cpp
 
 HEADERS  += include/sniffer.h\
          include/snifferthread.h\
@@ -40,5 +42,7 @@ HEADERS  += include/sniffer.h\
          include/snifferutil.h\
          include/mytableview.h\
          include/mainwindow.h\
-         include/originpacket_text.h
+         include/originpacket_text.h\
+         include/filterlineedit.h\
+         include/treeitem.h
 

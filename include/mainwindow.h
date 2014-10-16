@@ -20,7 +20,6 @@
 
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QTreeWidget>
 #include <QTextBlock>
 #include <QSplitter>
 #include <QTextEdit>
@@ -38,6 +37,7 @@
 #include "mytableview.h"
 #include "originpacket_text.h"
 #include "prototree.h"
+#include "filterlineedit.h"
 
 class SnifferThread;
 class MyTableView;
@@ -54,6 +54,7 @@ class QMenu;
 
 class OriginPacketText;
 class ProtoTree;
+class FilterLineEdit;
 
 class MainWindow : public QMainWindow
 {
@@ -65,6 +66,7 @@ public:
 
 public slots:
     void tableviewSelect(const QItemSelection & selected);
+    void prototreeSelectChanged(const QItemSelection& selected);
 
 private:
     void createMainWidget();
@@ -75,6 +77,7 @@ private:
 private slots:
     void startCapture();
     void stopCapture();
+    void searchFilter();
 
 
 private:
@@ -82,6 +85,8 @@ private:
     ProtoTree *prototree;    
     QSplitter *mainspliter;
     OriginPacketText *packettext;
+    FilterLineEdit* filteredit;
+    
 
     // Actions
     QAction* interfacesAction;          // List the aviliable capture interfaces

@@ -31,8 +31,8 @@
 #define PCAP_PROMISCUOUS 1  // Open the device in Promiscuous Mode
 #define PCAP_TIMEOUT 1000   // The timeout of pcap
 
-class Sniffer
-{
+class Sniffer : public QObject
+{ 
     public:
         Sniffer();
         ~Sniffer();
