@@ -20,13 +20,7 @@
 MainWindow::MainWindow()
 {
     
-    createMainWidget();
-    createAction();
-    createMenu();
-    createToolBar();
-
     this->pSniffer = new Sniffer();
-    
     if (pSniffer->getAllNetDevs() == false)
     {
         QMessageBox::warning(this, tr("Sniffer"),
@@ -37,7 +31,12 @@ MainWindow::MainWindow()
                     "<li>您的杀毒软件或者防火墙阻止本软件运行</li></ul>"), 
                     QMessageBox::Ok);
     }
-    this->pSniffer->openNetDev(6);
+
+    createMainWidget();
+    createAction();
+    createMenu();
+    createToolBar();
+    
 }
 
 MainWindow::~MainWindow()
@@ -65,6 +64,7 @@ void MainWindow::createMainWidget()
     this->prototree = new ProtoTree(this);
     this->packettext = new OriginPacketText(this);
     this->filteredit = new FilterLineEdit(this);
+    this->interfacedialog = new InterfacesSelectDialog(pSniffer, this);
 
     this->mainspliter = new QSplitter(Qt::Vertical,this);
 
@@ -89,6 +89,11 @@ void MainWindow::createMainWidget()
     // Binding searchlinetext returnPressed
     QObject::connect(this->filteredit,SIGNAL(returnPressed()),
             this, SLOT(searchFilter()));
+
+    // Bind the interface select options
+    QObject::connect(this->interfacedialog, SIGNAL(setCaptureOptions(const bool,
+                    const int, const QString&)), this,
+                SLOT(setCaptureOptions(const bool, const int, const QString&)));
 }
 
 void MainWindow::createAction()
@@ -102,17 +107,22 @@ void MainWindow::createAction()
     this->captureOptionAction->setIcon(QIcon(":/images/x-capture-options.png"));
     this->captureOptionAction->setShortcut(tr("Ctrl+K"));
     this->captureOptionAction->setToolTip(tr("Show the capture interfaces detail"));
+    this->captureOptionAction->setEnabled(true);
+    QObject::connect(this->captureOptionAction, SIGNAL(triggered()),
+            this,SLOT(selectInterface()));
     
     this->captureStartAction = new QAction(tr("Start"), this);
     this->captureStartAction->setIcon(QIcon(":/images/x-capture-start.png"));
     this->captureStartAction->setShortcut(tr("Ctrl+E"));
     this->captureStartAction->setToolTip(tr("Start a new live capture"));
+    this->captureStartAction->setEnabled(false);
     QObject::connect(captureStartAction, SIGNAL(triggered()), this, SLOT(startCapture()));
     
     this->captureStopAction= new QAction(tr("Stop"), this);
     this->captureStopAction->setIcon(QIcon(":/images/x-capture-stop.png"));
     this->captureStopAction->setShortcut(tr("Ctrl+E"));
     this->captureStopAction->setToolTip(tr("Stop the running live caption"));
+    this->captureStopAction->setEnabled(false);
     QObject::connect(captureStopAction, SIGNAL(triggered()), this, SLOT(stopCapture()));
     
     this->openFileAction = new QAction(tr("Open"), this);
@@ -129,41 +139,55 @@ void MainWindow::createAction()
     this->goPreviousPacketAction->setIcon(QIcon(":/images/go-previous.png"));
     this->goPreviousPacketAction->setShortcut(QKeySequence::Back);
     this->goPreviousPacketAction->setToolTip(tr("Go back in packet history"));
+    this->goPreviousPacketAction->setEnabled(false);
     
     this->goNextPacketAction = new QAction(tr("Next Packet"), this);
     this->goNextPacketAction->setIcon(QIcon(":/images/go-next.png"));
     this->goNextPacketAction->setShortcut(QKeySequence::Forward);
     this->goNextPacketAction->setToolTip(tr("Go forward in packet history"));
+    this->goNextPacketAction->setEnabled(false);
 
     this->goJumpPacketAction = new QAction(tr("Go to Packet"), this);
     this->goJumpPacketAction->setIcon(QIcon(":/images/go-jump.png"));
     this->goJumpPacketAction->setShortcut(tr("Ctrl+G"));
     this->goJumpPacketAction->setToolTip(tr("Go to the packet With number"));
+    this->goJumpPacketAction->setEnabled(false);
     
     this->goFirstPacketAction = new QAction(tr("First Packet"), this);
     this->goFirstPacketAction->setIcon(QIcon(":/images/go-first.png"));
     this->goFirstPacketAction->setShortcut(tr("Ctrl+Home"));
     this->goFirstPacketAction->setToolTip(tr("Go to the first packet"));
+    this->goFirstPacketAction->setEnabled(false);
      
     this->goLastPacketAction = new QAction(tr("Last Packet"), this);
     this->goLastPacketAction->setIcon(QIcon(":/images/go-last.png"));
     this->goLastPacketAction->setShortcut(tr("Ctrl+End"));
     this->goLastPacketAction->setToolTip(tr("Go to the last packet"));
+    this->goLastPacketAction->setEnabled(false);
 
     this->zoomInAction = new QAction(tr("Zoom In"), this);
     this->zoomInAction->setIcon(QIcon(":/images/zoom-in.png"));
     this->zoomInAction->setShortcut(QKeySequence::ZoomIn);
     this->zoomInAction->setToolTip(tr("Zoom In"));
+    this->zoomInAction->setEnabled(false);
+    QObject::connect(this->zoomInAction, SIGNAL(triggered()),
+            this, SLOT(zoomIn()));
 
     this->zoomOutAction = new QAction(tr("Zoom Out"), this);
     this->zoomOutAction->setIcon(QIcon(":/images/zoom-out.png"));
     this->zoomOutAction->setShortcut(QKeySequence::ZoomOut);
     this->zoomOutAction->setToolTip(tr("Zoom Out"));
+    this->zoomOutAction->setEnabled(false);
+    QObject::connect(this->zoomOutAction, SIGNAL(triggered()),
+            this, SLOT(zoomOut()));
 
     this->zoomOriginalAction = new QAction(tr("Normal Size"), this);
     this->zoomOriginalAction->setIcon(QIcon(":/images/zoom-original.png"));
     this->zoomOriginalAction->setShortcut(tr("Ctrl+="));
     this->zoomOriginalAction->setToolTip(tr("Zoom 100%"));
+    this->zoomOriginalAction->setEnabled(false);
+    QObject::connect(this->zoomOriginalAction, SIGNAL(triggered()),
+            this, SLOT(zoomOriginal()));
 
 }
 
@@ -191,7 +215,7 @@ void MainWindow::createMenu()
     this->menubar->addMenu(this->goMenu);
 
     this->captureMenu = new QMenu("Capture");
-    this->captureMenu->addAction(this->interfacesAction);
+    //this->captureMenu->addAction(this->interfacesAction);
     this->captureMenu->addAction(this->captureOptionAction);
     this->captureMenu->addAction(this->captureStartAction);
     this->captureMenu->addAction(this->captureStopAction);
@@ -203,7 +227,7 @@ void MainWindow::createMenu()
 void MainWindow::createToolBar()
 {
    this->toolbar = new QToolBar(this); 
-   this->toolbar->addAction(this->interfacesAction);
+   //this->toolbar->addAction(this->interfacesAction);
    this->toolbar->addAction(this->captureOptionAction);
    this->toolbar->addAction(this->captureStartAction);
    this->toolbar->addAction(this->captureStopAction);
@@ -231,7 +255,9 @@ void MainWindow::createToolBar()
 void MainWindow::startCapture()
 {
     this->captureStartAction->setIcon(QIcon(":/images/x-capture-start.png"));
-    this->captureStartAction->setDisabled(true); 
+    this->captureStartAction->setEnabled(false); 
+    this->captureStopAction->setEnabled(true); 
+
     this->pSnifferthread = new SnifferThread(pSniffer, this->tableview);
     connect(this->pSnifferthread,SIGNAL(addPacketItem(QString, QString, QString,QString, int, QString)),
             this->tableview,SLOT(addPacketItem(QString, QString, QString,QString, int, QString)));
@@ -247,6 +273,8 @@ void MainWindow::stopCapture()
 {
     this->captureStartAction->setIcon(QIcon(":/images/x-capture-start.on.png"));
     this->captureStartAction->setEnabled(true);
+    this->captureStopAction->setEnabled(false);
+
     if (this->pSnifferthread)
     {
         this->pSnifferthread->stopSniffer();
@@ -269,12 +297,55 @@ void MainWindow::prototreeSelectChanged(const QItemSelection& selected)
     
     this->packettext->setSelection(index.data(ROLE_OFFSET).value<int>(),
             index.data(ROLE_LEN).value<int>());
-    QMessageBox::information(this, "info", QString("offset:%1--len:%2")
-            .arg(index.data(ROLE_OFFSET).value<int>())
-            .arg(index.data(ROLE_LEN).value<int>()));
 }
 
 void MainWindow::searchFilter()
 {
     this->tableview->setFilterString(this->filteredit->getFilterText());
+}
+
+
+void MainWindow::selectInterface()
+{
+    this->interfacedialog->show();
+}
+
+void MainWindow::setCaptureOptions(const bool bPromiscuous,
+        const int deviceIndex, const QString& strFilter)
+{
+    this->pSniffer->openNetDev(deviceIndex, bPromiscuous);
+    if (strFilter != "")
+    {
+        this->pSniffer->setDeviceFilter(strFilter);
+    }
+
+    startCapture();
+
+    // Enable the actions
+    this->captureStopAction->setEnabled(true);
+    this->goJumpPacketAction->setEnabled(true);
+    this->goLastPacketAction->setEnabled(true);
+    this->goNextPacketAction->setEnabled(true);
+    this->goFirstPacketAction->setEnabled(true);
+    this->goPreviousPacketAction->setEnabled(true);
+    
+    this->zoomOutAction->setEnabled(true);
+    this->zoomOriginalAction->setEnabled(true);
+    this->zoomInAction->setEnabled(true);
+}
+
+void MainWindow::zoomIn()
+{
+    this->tableview->zoomTextSize(++zoomLevel);
+}
+
+void MainWindow::zoomOut()
+{
+    this->tableview->zoomTextSize(--zoomLevel);
+}
+
+void MainWindow::zoomOriginal()
+{
+    this->tableview->zoomTextSize(0);
+    this->zoomLevel = 0;
 }

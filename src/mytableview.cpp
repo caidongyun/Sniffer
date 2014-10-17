@@ -20,8 +20,12 @@
 
 MyTableView::MyTableView(QWidget* parent) : QTableView(parent)
 {
-    // Set Table Style
 
+    // Set Table Style
+    this->textSize = 11;
+    zoomTextSize(0);
+
+    //
     this->model = new QStandardItemModel();
     this->proxyModel = new QSortFilterProxyModel();
 
@@ -44,6 +48,14 @@ MyTableView::~MyTableView()
     
 }
 
+void MyTableView::zoomTextSize(int zoomLevel)
+{
+    qreal textSize = this->textSize * qPow(1.1, zoomLevel);
+
+    QFont font;
+    font.setPointSizeF(textSize);
+    this->setFont(font);
+}
 
 void MyTableView::addPacketItem(QString strTime, QString strSrc,
                                 QString strDst, QString strProtocol,
@@ -146,11 +158,3 @@ void MyTableView::setFilterString(QString strFilter)
     this->proxyModel->setFilterKeyColumn(column);
 }
 
-void MyTableView::startFilter(int column, QString filter)
-{
-    QList<QStandardItem*> res = this->model->findItems(filter, Qt::MatchContains, column); 
-    QStandardItem *item;
-    foreach (item,res)
-    {
-    }
-}

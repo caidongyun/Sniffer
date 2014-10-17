@@ -22,7 +22,7 @@ LIBS += -lpcap
 
 UI_DIR += ui
 
-FORMS += ui/interfacesselect.ui
+FORMS += ui/interfacesselectdialog.ui
 
 SOURCES += src/main.cpp\
         src/sniffer.cpp\
@@ -33,7 +33,7 @@ SOURCES += src/main.cpp\
         src/mainwindow.cpp\
         src/originpacket_text.cpp\
         src/filterlineedit.cpp\
-        src/treeitem.cpp
+        src/interfacesselectdialog.cpp
 
 HEADERS  += include/sniffer.h\
          include/snifferthread.h\
@@ -44,5 +44,5 @@ HEADERS  += include/sniffer.h\
          include/mainwindow.h\
          include/originpacket_text.h\
          include/filterlineedit.h\
-         include/treeitem.h
+         include/interfacesselectdialog.h
 

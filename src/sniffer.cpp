@@ -65,8 +65,13 @@ bool Sniffer::getAllNetDevs()
     }
 
     qDebug("Get device");
+    NetDevInfo tmpNetInfo;
     for (pcap_if_t *ind = this->pAllNetDevs; ind != NULL; ind = ind->next)
     {
+        tmpNetInfo.strDevName = ind->name;
+        tmpNetInfo.strDevDesc = ind->description;
+
+        this->netDevsInfoVector.append(tmpNetInfo);
         qDebug("device%d:%s", this->iNetDevsNum, ind->name);
         this->iNetDevsNum ++;
     }
@@ -178,3 +183,41 @@ int Sniffer::captureOnce()
    return res;
 }
 
+QString Sniffer::checkBnfExpr(int devIndex,const QString& expr)
+{
+    int flag = 0;
+    if (this->device != NULL)
+    {
+        openNetDev(devIndex);
+        flag = 1;
+    }
+    struct bpf_program fcode;
+    if (pcap_compile(this->device, &fcode, 
+                expr.toStdString().data(), 1, PCAP_NETMASK_UNKNOWN) != 0)
+    {
+        return QString(pcap_geterr(this->device));
+    }
+    if (flag == 1)
+    {
+        closeNetDev();
+    }
+    return NULL;
+}
+
+bool Sniffer::setDeviceFilter(const QString& expr)
+{
+
+    struct bpf_program fcode;
+    if (pcap_compile(this->device, &fcode, 
+                expr.toStdString().data(), 1, PCAP_NETMASK_UNKNOWN) != 0)
+    {
+        return false;
+    }
+    
+    if (pcap_setfilter(this->device, &fcode) < 0)
+    {
+        return false;
+    }
+
+    return true;
+}

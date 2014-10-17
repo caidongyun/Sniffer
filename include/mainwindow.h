@@ -38,6 +38,7 @@
 #include "originpacket_text.h"
 #include "prototree.h"
 #include "filterlineedit.h"
+#include "interfacesselectdialog.h"
 
 class SnifferThread;
 class MyTableView;
@@ -67,6 +68,8 @@ public:
 public slots:
     void tableviewSelect(const QItemSelection & selected);
     void prototreeSelectChanged(const QItemSelection& selected);
+    void setCaptureOptions(const bool bPromiscuous, 
+            const int deviceIndex, const QString& strFilter);
 
 private:
     void createMainWidget();
@@ -79,6 +82,13 @@ private slots:
     void stopCapture();
     void searchFilter();
 
+    // The Action slot
+    void selectInterface();
+    // Zoom
+    void zoomIn();
+    void zoomOut();
+    void zoomOriginal();
+
 
 private:
     MyTableView *tableview;
@@ -86,6 +96,9 @@ private:
     QSplitter *mainspliter;
     OriginPacketText *packettext;
     FilterLineEdit* filteredit;
+
+    // The Dialog
+    InterfacesSelectDialog* interfacedialog;
     
 
     // Actions
@@ -114,6 +127,10 @@ private:
 
     SnifferThread *pSnifferthread;
     Sniffer *pSniffer;
+
+
+    // Zoom level
+    int zoomLevel;                      // The zoom level max is 10, every zoom mean multipy 1.1 
 };
 
 #endif

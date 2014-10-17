@@ -26,6 +26,7 @@
 #include <QAbstractItemView>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
+#include <QtCore/qmath.h>
 
 #include "sniffertypes.h"
 
@@ -59,9 +60,9 @@ class MyTableView : public QTableView
         void setFilterString(QString strFilter);
 
         /* *
-         * Filter the table
+         * zoom the text size of the tableview
          * */
-        void startFilter(int column, QString filter);
+        void zoomTextSize(int zoomLevel);
 
     public slots:
         /**
@@ -77,6 +78,7 @@ class MyTableView : public QTableView
         QStandardItemModel *model;
         QSortFilterProxyModel *proxyModel;
         int iPos; // The postion of current row
+        int textSize;
 };
 
 #endif

@@ -31,6 +31,12 @@
 #define PCAP_PROMISCUOUS 1  // Open the device in Promiscuous Mode
 #define PCAP_TIMEOUT 1000   // The timeout of pcap
 
+struct NetDevInfo
+{
+    QString strDevName;
+    QString strDevDesc;
+};
+
 class Sniffer : public QObject
 { 
     public:
@@ -52,6 +58,17 @@ class Sniffer : public QObject
 
         int captureOnce();   // Capture once
 
+        // Check if the expr is valid, 
+        // if valid return NULL, otherwise return the error message
+        //
+        // The deviceNum is the index number of the device
+        QString checkBnfExpr(int deviceNum,const QString& expr); 
+
+        /* *
+         * Set Dev Filter
+         * */
+        bool setDeviceFilter(const QString& expr);
+
 
     public:
         pcap_if_t *pAllNetDevs;         // The pointer of all the net device list
@@ -61,6 +78,7 @@ class Sniffer : public QObject
         struct pcap_pkthdr* header;     // The captured packet header
         const u_char *packetData;       // The data packet 
         QVector<SnifferData> snifferDataVector; // The sniffered Data
+        QVector<NetDevInfo> netDevsInfoVector;  // The info of all the net dev
         
 };
 #endif
