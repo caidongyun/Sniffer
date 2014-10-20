@@ -181,6 +181,59 @@ class SnifferUtil
             return res;
         }
 
+        /* *
+         * Analysis the application data
+         *
+         * @return The applicationdata constains the protocal and the data
+         * @param pdata The pointer to the data
+         * @param offset the offset of the application data
+         * @param len the total len of the data
+         * */
+        static ApplicationData* analysisApplication(const u_char* pdata, int offset, int len)
+        {
+            ApplicationData* ad = new ApplicationData();
+            if (ad == NULL)
+            {
+                return NULL;
+            }
+            ad->strProtocal = "";
+            ad->strContent = "";
+            
+            for (int i=offset; i<len; i++)
+            {
+                if (pdata[i] > 32 && pdata[i] < 127)
+                {
+                    ad->strContent += pdata[i];
+                }
+                else if(pdata[i] == 0x0d)
+                {
+                    ad->strContent += "\r";
+                }
+                else if(pdata[i] == 0x0a)
+                {
+                    ad->strContent += "\n";
+                }
+                else
+                {
+                    ad->strContent += ".";
+                }
+            }
+
+            if (ad->strContent.startsWith("Get", Qt::CaseInsensitive)
+                    || ad->strContent.startsWith("Post", Qt::CaseInsensitive)
+                    || ad->strContent.startsWith("Http/1.1", Qt::CaseInsensitive))
+            {
+                ad->strProtocal = SnifferType::HTTP_PROTOCAL;
+            }
+            else if (ad->strContent.startsWith("M-SEARCH", Qt::CaseInsensitive)
+                    ||ad->strContent.startsWith("NOTIFY",Qt::CaseInsensitive))
+            {
+                ad->strProtocal = SnifferType::SSDP_PROTOCAL;
+            }
+
+            return ad;
+        }
+
         static QString getFormatTime(const time_t* t)
         {
             char timestr[16];

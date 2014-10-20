@@ -111,7 +111,7 @@ void SnifferThread::run()
                 {
                     //qDebug("Resolve ipv4 header:%x" ,tmpProtocal);
                     struct ip* tmpIpHeader = (struct ip*)(pPktData + tmpFrameOffset); // Add the offset of mac header
-                    tmpFrameOffset += sizeof(struct ip);
+                    tmpFrameOffset += tmpIpHeader->ip_hl * 4;
                     snifferProtocal = new SnifferProtocal();
                     snifferProtocal->strProtocal = SnifferType::IP_PROTOCAL;
                     snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpIpHeader, sizeof(struct ip));
@@ -151,7 +151,7 @@ void SnifferThread::run()
                     case IPPROTO_TCP:
                     {
                         struct tcphdr *tmpTcpHeader = (struct tcphdr*)(pPktData + tmpFrameOffset);
-                        tmpFrameOffset += sizeof(struct tcphdr);
+                        tmpFrameOffset += tmpTcpHeader->doff * 4;
 
                         snifferProtocal = new SnifferProtocal();
                         snifferProtocal->strProtocal = SnifferType::TCP_PROTOCAL;
@@ -185,11 +185,6 @@ void SnifferThread::run()
                                 strProtocol = "SMTP";
                                 break;
                             }
-                            case HTTP_PORT:
-                            {
-                                strProtocol = "HTTP";
-                                break;
-                            }
                             case HTTPS_PORT:
                             {
                                 strProtocol = "HTTPS";
@@ -205,7 +200,22 @@ void SnifferThread::run()
                                 break;
                             }
                         }
+                        // Here we just analysis the http header
+                        try{
+                            ApplicationData* pad = SnifferUtil::analysisApplication(pPktData, 
+                                    tmpFrameOffset,rawData.size()) ;
 
+                            if (pad->strProtocal != "")
+                            {
+                                strProtocol = pad->strProtocal.toUpper();
+                            }
+                            info = pad->strContent.split("\r\n")[0];
+                            snifferProtocal = new SnifferProtocal();
+                            snifferProtocal->strProtocal = pad->strProtocal;
+                            snifferProtocal->pProtocal = pad;
+                            tmpSnifferData.protocalVec.append(snifferProtocal);
+                        }catch(std::exception)
+                        {}
                         break;
                     }
                     case IPPROTO_UDP:
@@ -241,6 +251,23 @@ void SnifferThread::run()
                             {
                                 break;
                             }
+                        }
+
+                        // The application layer, we now just analysis ssdp protocol
+                        try {
+                            ApplicationData* pad = SnifferUtil::analysisApplication(pPktData, 
+                                    tmpFrameOffset,rawData.size()) ;
+
+                            if (pad->strProtocal != "")
+                            {
+                                strProtocol = pad->strProtocal.toUpper();
+                            }
+                            snifferProtocal = new SnifferProtocal();
+                            snifferProtocal->pProtocal = pad;
+                            tmpSnifferData.protocalVec.append(snifferProtocal);
+                        } catch (std::exception)
+                        {
+
                         }
 
                         break;

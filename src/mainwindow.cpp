@@ -299,8 +299,22 @@ void MainWindow::stopCapture()
 void MainWindow::tableviewSelect(const QItemSelection & selected,
         const QItemSelection& deselected)
 {
-    QModelIndex index = selected.indexes().at(0);
-    int row = index.data(Qt::DisplayRole).toString().toInt() - 1;
+    QModelIndexList indexList = selected.indexes();
+
+    if (indexList.size() == 0)
+    {
+        return;
+    }
+
+    QModelIndex index = indexList.at(0);
+    
+    int row = 0;
+    try
+    {
+       row = index.data(Qt::DisplayRole).toString().toInt() - 1;
+    }
+    catch (std::exception)
+    {}
 
     this->packettext->addData(this->pSniffer->snifferDataVector.at(row).rawData); 
     this->prototree->startAnalysis(this->pSniffer->snifferDataVector.at(row), row+1);

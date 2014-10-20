@@ -249,7 +249,7 @@ void AnalysisThread::addIpNode(int protoInd)
     struct ip* pip_header = (struct ip *)this->snifferData.protocalVec.at(protoInd)->pProtocal;
 
     QStandardItem* ipitem = new QStandardItem();
-    this->len = sizeof(struct ip);
+    this->len = pip_header->ip_hl * 4;
     setUserRoleData(ipitem);
     ipitem->setText(QString("Internet Protocol Version 4, Src: %1, Dst: %2")
             .arg(inet_ntoa(pip_header->ip_src))
@@ -565,8 +565,11 @@ void AnalysisThread::addTcpNode(int protoInd)
     struct tcphdr* ptcp_header = (struct tcphdr *)this->snifferData.protocalVec.at(protoInd)->pProtocal;
 
     QStandardItem* tcpitem = new QStandardItem();
-    this->len = sizeof(struct tcphdr);
+    this->len = ptcp_header->doff * 4;
     setUserRoleData(tcpitem);
+
+    // For the bottom manage the tcp header
+    int tcpoffset = this->offset + ptcp_header->doff * 4;
 
     QStandardItem* item = new QStandardItem();
     u_int16_t src_port = ntohs(ptcp_header->source);
@@ -728,7 +731,56 @@ void AnalysisThread::addTcpNode(int protoInd)
             .arg(dst_port)
             .arg(seq)
             .arg(ack_seq));
-    this->model->setItem(this->irow++, 0, tcpitem);   
+    this->model->setItem(this->irow++, 0, tcpitem); 
+
+    // Analysis the application data
+    //
+    this->offset = tcpoffset;
+    ApplicationData* pad = NULL;
+    try{
+        pad = static_cast<ApplicationData*>(this->snifferData.
+               protocalVec.at(protoInd+1)->pProtocal);
+    } catch(std::exception)
+    {
+        return;
+    }
+    if (pad == NULL)
+    {
+        return;
+    }
+    if (pad->strProtocal == SnifferType::HTTP_PROTOCAL)
+    {
+        addHttpNode(pad);
+    }
+}
+
+void AnalysisThread::addHttpNode(const ApplicationData* pad)
+{
+    QStandardItem* httpitem = new QStandardItem();
+    QStringList contentList = pad->strContent.split("\r\n");
+
+    this->len = pad->strContent.size();
+    setUserRoleData(httpitem);
+    httpitem->setText("Hypertext Transfer Protocol");
+
+    QStandardItem* item;
+
+    foreach (QString contentitem, contentList)
+    {
+        if (contentitem == "")
+        {
+            continue;
+        }
+        item = new QStandardItem();
+        contentitem += "\\r\\n";
+        this->len = contentitem.size() - 2; // As \\r \\n each is two char
+        item->setText(contentitem);
+        setUserRoleData(item);
+        httpitem->appendRow(item);
+        this->offset += this->len;
+    }
+ 
+    this->model->setItem(this->irow++, 0, httpitem);   
 }
 
 void AnalysisThread::addUdpNode(int protoInd)
@@ -777,6 +829,26 @@ void AnalysisThread::addUdpNode(int protoInd)
             .arg(dst_port));
 
     this->model->setItem(this->irow++, 0, udpitem);   
+
+    // Add the application data, we just analysis ssdp
+    ApplicationData* pad = NULL;
+    try{
+        pad = static_cast<ApplicationData*>(this->snifferData.
+               protocalVec.at(protoInd+1)->pProtocal);
+    } catch(std::exception)
+    {
+        return;
+    }
+    if (pad == NULL)
+    {
+        return;
+    }
+
+    if (pad->strProtocal == SnifferType::SSDP_PROTOCAL)
+    {
+        addHttpNode(pad);
+    }
+
 }
 
 void AnalysisThread::addIcmpNode(int protoInd)

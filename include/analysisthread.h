@@ -21,6 +21,8 @@
 #include <QtCore/QThread>
 #include <QStandardItemModel>
 
+#include <stdexcept>
+
 #include "sniffertypes.h"
 #include "prototree.h"
 #include "snifferutil.h"
@@ -69,6 +71,9 @@ class AnalysisThread : public QThread
 
         // Add igmp node
         void addIgmpNode(int protoInd);
+
+        // Add http node
+        void addHttpNode(const ApplicationData* pad);
 
         QStandardItemModel* model;
         SnifferData snifferData;
