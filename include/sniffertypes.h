@@ -156,6 +156,8 @@ namespace SnifferType
     const QString IP_PROTOCAL = "ip";
     const QString IPV6_PROTOCAL = "ipv6";
     const QString ARP_PROTOCAL = "arp";
+    const QString TCP_PROTOCAL = "tcp";
+    const QString UDP_PROTOCAL = "udp";
 }
 
 // TCP protocal

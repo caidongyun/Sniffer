@@ -30,7 +30,7 @@ InterfacesSelectDialog::InterfacesSelectDialog(Sniffer* pSniffer,QWidget* parent
     this->setMinimumWidth(800);
 
     this->simpleFilterComboBox->addItems(QStringList() << 
-            "" << "Only Ip" <<"Only UDP" << "Only TCP" <<"Only ARP");
+            "" << "Only Ip" << "Only Ip6" <<"Only UDP" << "Only TCP" <<"Only ARP");
 
     // Add the tablewidget 
     addNetDevInfo();
@@ -59,13 +59,16 @@ void InterfacesSelectDialog::updateBnfExpr(int index)
         case 1: // Only Ip
             expr = "ip";
             break; 
-        case 2: // Only UDP
+        case 2: // Only Ip6
+            expr = "ip6";
+            break; 
+        case 3: // Only UDP
             expr = "udp";
             break; 
-        case 3: // Only Tcp
+        case 4: // Only Tcp
             expr = "tcp";
             break;
-        case 4: // Only ARP
+        case 5: // Only ARP
             expr = "arp";
             break;
         default:

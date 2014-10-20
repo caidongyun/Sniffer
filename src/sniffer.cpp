@@ -129,6 +129,7 @@ bool Sniffer::openNetDev(int iDevNum, int flag, int iLengthLimit)
     if (this->device != NULL)
     {
         closeNetDev();
+        this->device = NULL;
     }
 
     if (iDevNum < 0 || iDevNum > this->iNetDevsNum)
@@ -175,20 +176,19 @@ bool Sniffer::closeNetDev()
 int Sniffer::captureOnce()
 {
    int res = pcap_next_ex(this->device, &(this->header), &(this->packetData));
-   //QByteArray rawData;
-   //rawData.clear();
-   //rawData.setRawData((const char*)this->packetData, (this->header)->caplen);
-   //QString tmpStr(rawData.toHex()); 
-   //qDebug("Time:%s---data:%s", ctime((const time_t*)&this->header->ts.tv_sec),qPrintable(tmpStr));
+
    return res;
 }
 
 QString Sniffer::checkBnfExpr(int devIndex,const QString& expr)
 {
     int flag = 0;
-    if (this->device != NULL)
+    if (this->device == NULL)
     {
-        openNetDev(devIndex);
+        if(!openNetDev(devIndex))
+        {
+            return "Can not open device";
+        }
         flag = 1;
     }
     struct bpf_program fcode;

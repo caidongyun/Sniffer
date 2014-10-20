@@ -61,12 +61,12 @@ class OriginPacketText : public QTextEdit
         /* *
          * The offset byte position
          * */
-        int positionOfByteOffset(int offset);
+        int positionOfByteOffset(int offset, bool bEnd);
 
         /* *
          * The offset char position
          * */
-        int positionOfCharOffset(int offset);
+        int positionOfCharOffset(int offset, bool bEnd);
 
         // Is hex view or bits view
         // The hex view will show 16 bytes while bits view show 8 bytes

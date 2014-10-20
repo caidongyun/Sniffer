@@ -36,6 +36,8 @@ class QStandardItem;
 class QHeaderView;
 class QAbstractItemView;
 
+#define ROLE_INDEX Qt::UserRole + 1
+
 class MyTableView : public QTableView
 {
     Q_OBJECT
@@ -73,6 +75,13 @@ class MyTableView : public QTableView
         void addPacketItem(QString strTime, QString strSrc,
                 QString strDst, QString strProtocol,int iLength,
                 QString info);
+         
+        // Jump to packet
+        //void goFirstPacket();
+        //void goLastPacket();
+        //void goJumpPacket();
+        //void goNextPacket();
+        //void goPreviousPacket();
 
     private:
         QStandardItemModel *model;

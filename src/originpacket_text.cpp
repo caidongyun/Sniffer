@@ -146,23 +146,26 @@ void OriginPacketText::setSelection(int offset ,int len)
     QList<QTextEdit::ExtraSelection> extraSelections;
     qDebug("offset:%d--len:%d", offset,len);
 
-    int start = 0;
-    int end = 0;
-    for (int i=0; i<len; i+= showByteCnt)
+    int startOffset,endOffset;
+    int start = offset;
+    int end = (start / showByteCnt + 1) * showByteCnt;
+    end = end > (offset+len) ? (offset+len) : end;
+    while(true)
     {
         QTextEdit::ExtraSelection selection;
         selection.cursor = this->textCursor();
         selection.format.setForeground(QColor("#ffffff"));
         selection.format.setBackground(QColor("#4a90d9"));
  
-        qDebug("startInd:%d---endInd:%d",offset + i, offset+((i+showByteCnt-1) < len?(i+showByteCnt-1):len));
-        start = positionOfByteOffset(offset + i);
-        end = positionOfByteOffset(offset + ((i+showByteCnt-1) < len?(i+showByteCnt-1):len));
+        qDebug("start:%d--end:%d", start, end);
+        startOffset = positionOfByteOffset(start, false);
+        endOffset = positionOfByteOffset(end, true);
         //end = positionOfByteOffset(offset + 17);
-        selection.cursor.setPosition(start, QTextCursor::MoveAnchor);
-        qDebug("i:%d ==start:%d--end:%d",i,start, end);
+        selection.cursor.setPosition(startOffset, QTextCursor::MoveAnchor);
+        //qDebug("start:%d--end:%d",start, end);
         
-        selection.cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor,end - start - 1);
+        selection.cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor,
+                endOffset - startOffset - 1);
         extraSelections.append(selection);
 
         QTextEdit::ExtraSelection selection2;
@@ -170,21 +173,28 @@ void OriginPacketText::setSelection(int offset ,int len)
         selection2.format.setForeground(QColor("#ffffff"));
         selection2.format.setBackground(QColor("#4a90d9"));
  
-        start = positionOfCharOffset(offset + i);
-        end = positionOfCharOffset(offset + ((i+showByteCnt-1) < len?(i+showByteCnt-1):len));
-        //end = positionOfCharOffset(offset + 17);
-        selection2.cursor.setPosition(start, QTextCursor::MoveAnchor);
-        qDebug("i:%d ==start:%d--end:%d",i,start, end);
+        startOffset = positionOfCharOffset(start, false);
+        endOffset = positionOfCharOffset(end, true);
+        selection2.cursor.setPosition(startOffset, QTextCursor::MoveAnchor);
+        qDebug("==start:%d--end:%d",startOffset, endOffset);
         
-        selection2.cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor,end - start - 1);
+        selection2.cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor,
+                endOffset - startOffset - 1);
         extraSelections.append(selection2);
+
+        start = end;
+        end = (start + showByteCnt) > (offset+len) ?(len+offset): (start+showByteCnt);
+        if (start >= (len+offset))
+        {
+            break;
+        }
 
     }
     this->setExtraSelections(extraSelections);
     this->textCursor().clearSelection();
 }
 
-int OriginPacketText::positionOfByteOffset(int offset)
+int OriginPacketText::positionOfByteOffset(int offset, bool bEnd)
 {
     int byteRowCnt = 0;   // The total char size in a len
     
@@ -203,12 +213,17 @@ int OriginPacketText::positionOfByteOffset(int offset)
     int showByteCnt = this->bHex ? 16 : 8;
 
     int rowoffset = offset % showByteCnt;
-    if (offset%showByteCnt == showByteCnt-1)
-    {
-        rowoffset += 1;
-    }
 
-    int position = offset / showByteCnt * byteRowCnt;
+    int position;
+    if (rowoffset == 0 && bEnd)
+    {
+        position = (offset / showByteCnt - 1) * byteRowCnt;
+        rowoffset = showByteCnt;
+    }
+    else
+    {
+        position = offset / showByteCnt * byteRowCnt;
+    }
     position += 6;
     if (this->bHex) 
     {
@@ -226,7 +241,7 @@ int OriginPacketText::positionOfByteOffset(int offset)
                 ((rowoffset > 1)?(rowoffset-1):0)*1  // the space
                 );
     }
-    if (offset % showByteCnt != 0)
+    if (rowoffset != 0)
     {
         // If the start is not the start of line add a space char
         position ++;
@@ -235,7 +250,7 @@ int OriginPacketText::positionOfByteOffset(int offset)
     return position;
 }
 
-int OriginPacketText::positionOfCharOffset(int offset)
+int OriginPacketText::positionOfCharOffset(int offset, bool bEnd)
 {
     int byteRowCnt = 0;   // The total char size in a len
     
@@ -254,12 +269,17 @@ int OriginPacketText::positionOfCharOffset(int offset)
     int showByteCnt = this->bHex ? 16 : 8;
 
     int rowoffset = offset % showByteCnt;
-    if (offset%showByteCnt == showByteCnt-1)
+    int position;
+    if (rowoffset == 0 && bEnd)
     {
-        rowoffset += 1;
+        position = (offset / showByteCnt - 1) * byteRowCnt;
+        rowoffset = showByteCnt;
+    }
+    else
+    {
+        position = offset / showByteCnt * byteRowCnt;
     }
 
-    int position = offset / showByteCnt * byteRowCnt;
     position += 6;
     if (this->bHex) 
     {
@@ -270,7 +290,7 @@ int OriginPacketText::positionOfCharOffset(int offset)
         position += 74;
     }
     position += (rowoffset + (rowoffset >= 8?1:0));                   // The row offset
-    if (offset % showByteCnt != 0)
+    if (rowoffset != 0 && bEnd)
     {
         // If the start is not the start of line add a space char
         position ++;

@@ -39,6 +39,7 @@ SnifferThread::~SnifferThread()
 
 void SnifferThread::run()
 {
+
     int res = -1;
     bStop = false;
     QByteArray rawData;
@@ -152,6 +153,19 @@ void SnifferThread::run()
                         struct tcphdr *tmpTcpHeader = (struct tcphdr*)(pPktData + tmpFrameOffset);
                         tmpFrameOffset += sizeof(struct tcphdr);
 
+                        snifferProtocal = new SnifferProtocal();
+                        snifferProtocal->strProtocal = SnifferType::TCP_PROTOCAL;
+                        snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpTcpHeader, 
+                                sizeof(struct tcphdr));
+                        tmpSnifferData.protocalVec.append(snifferProtocal);
+
+                        info = QString("%1 > %2 Seq=%3 Ack=%4 Window=%5")
+                            .arg(ntohs(tmpTcpHeader->source))
+                            .arg(ntohs(tmpTcpHeader->dest))
+                            .arg(ntohl(tmpTcpHeader->seq))
+                            .arg(ntohl(tmpTcpHeader->ack_seq))
+                            .arg(ntohs(tmpTcpHeader->window));
+
                         strProtocol = "TCP";
                         int tcpProtocal = ntohs(tmpTcpHeader->source);
                         switch (tcpProtocal)
@@ -198,6 +212,16 @@ void SnifferThread::run()
                     {
                         struct udphdr *tmpUdpHeader = (struct udphdr*)(pPktData + tmpFrameOffset);
                         tmpFrameOffset += sizeof(struct udphdr);
+
+                        snifferProtocal = new SnifferProtocal();
+                        snifferProtocal->strProtocal = SnifferType::UDP_PROTOCAL;
+                        snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpUdpHeader, 
+                                sizeof(struct udphdr));
+                        tmpSnifferData.protocalVec.append(snifferProtocal);
+
+                        info = QString("Source port: %1  Destination port: %2")
+                            .arg(tmpUdpHeader->source,7)
+                            .arg(tmpUdpHeader->dest,7);
 
                         strProtocol = "UDP";
                         int udpProtocal = ntohs(tmpUdpHeader->source);

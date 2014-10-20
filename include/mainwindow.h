@@ -29,6 +29,8 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QKeySequence>
+#include <QInputDialog>
+#include <QAbstractItemView>
 
 #include "sniffer.h"
 #include "snifferthread.h"
@@ -66,10 +68,12 @@ public:
     ~MainWindow();
 
 public slots:
-    void tableviewSelect(const QItemSelection & selected);
+    void tableviewSelect(const QItemSelection & selected, 
+            const QItemSelection& deselect);
     void prototreeSelectChanged(const QItemSelection& selected);
     void setCaptureOptions(const bool bPromiscuous, 
             const int deviceIndex, const QString& strFilter);
+
 
 private:
     void createMainWidget();
@@ -88,6 +92,13 @@ private slots:
     void zoomIn();
     void zoomOut();
     void zoomOriginal();
+
+    // Jump to packet
+    void goFirstPacket();
+    void goLastPacket();
+    void goJumpPacket();
+    void goNextPacket();
+    void goPreviousPacket();
 
 
 private:
@@ -131,6 +142,9 @@ private:
 
     // Zoom level
     int zoomLevel;                      // The zoom level max is 10, every zoom mean multipy 1.1 
+    // history list                     // contain the histroy go to packet list
+    QVector<int> histroyIndexVector;
+    int currentIndex;                   // The current of the history index
 };
 
 #endif

@@ -78,7 +78,7 @@ void MainWindow::createMainWidget()
     // Binding tableview selection action
     QObject::connect(this->tableview->selectionModel(), 
             SIGNAL(selectionChanged( const QItemSelection&, const QItemSelection&)),
-            this, SLOT(tableviewSelect(const QItemSelection&)));
+            this, SLOT(tableviewSelect(const QItemSelection&, const QItemSelection&)));
 
 
     // Bind the prototree selection
@@ -94,6 +94,8 @@ void MainWindow::createMainWidget()
     QObject::connect(this->interfacedialog, SIGNAL(setCaptureOptions(const bool,
                     const int, const QString&)), this,
                 SLOT(setCaptureOptions(const bool, const int, const QString&)));
+
+    
 }
 
 void MainWindow::createAction()
@@ -140,30 +142,40 @@ void MainWindow::createAction()
     this->goPreviousPacketAction->setShortcut(QKeySequence::Back);
     this->goPreviousPacketAction->setToolTip(tr("Go back in packet history"));
     this->goPreviousPacketAction->setEnabled(false);
+    QObject::connect(this->goPreviousPacketAction, SIGNAL(triggered()),
+            this, SLOT(goPreviousPacket()));
     
     this->goNextPacketAction = new QAction(tr("Next Packet"), this);
     this->goNextPacketAction->setIcon(QIcon(":/images/go-next.png"));
     this->goNextPacketAction->setShortcut(QKeySequence::Forward);
     this->goNextPacketAction->setToolTip(tr("Go forward in packet history"));
     this->goNextPacketAction->setEnabled(false);
+    QObject::connect(this->goNextPacketAction, SIGNAL(triggered()),
+            this, SLOT(goNextPacket()));
 
     this->goJumpPacketAction = new QAction(tr("Go to Packet"), this);
     this->goJumpPacketAction->setIcon(QIcon(":/images/go-jump.png"));
     this->goJumpPacketAction->setShortcut(tr("Ctrl+G"));
     this->goJumpPacketAction->setToolTip(tr("Go to the packet With number"));
     this->goJumpPacketAction->setEnabled(false);
+    QObject::connect(this->goJumpPacketAction, SIGNAL(triggered()),
+            this, SLOT(goJumpPacket()));
     
     this->goFirstPacketAction = new QAction(tr("First Packet"), this);
     this->goFirstPacketAction->setIcon(QIcon(":/images/go-first.png"));
     this->goFirstPacketAction->setShortcut(tr("Ctrl+Home"));
     this->goFirstPacketAction->setToolTip(tr("Go to the first packet"));
     this->goFirstPacketAction->setEnabled(false);
+    QObject::connect(this->goFirstPacketAction, SIGNAL(triggered()),
+            this, SLOT(goFirstPacket()));
      
     this->goLastPacketAction = new QAction(tr("Last Packet"), this);
     this->goLastPacketAction->setIcon(QIcon(":/images/go-last.png"));
     this->goLastPacketAction->setShortcut(tr("Ctrl+End"));
     this->goLastPacketAction->setToolTip(tr("Go to the last packet"));
     this->goLastPacketAction->setEnabled(false);
+    QObject::connect(this->goLastPacketAction, SIGNAL(triggered()),
+            this, SLOT(goLastPacket()));
 
     this->zoomInAction = new QAction(tr("Zoom In"), this);
     this->zoomInAction->setIcon(QIcon(":/images/zoom-in.png"));
@@ -278,14 +290,17 @@ void MainWindow::stopCapture()
     if (this->pSnifferthread)
     {
         this->pSnifferthread->stopSniffer();
-        this->pSnifferthread->deleteLater();
+        //this->pSnifferthread->deleteLater();
+        this->pSnifferthread->terminate();
         this->pSnifferthread = NULL;
     }
 }
 
-void MainWindow::tableviewSelect( const QItemSelection & selected)
+void MainWindow::tableviewSelect(const QItemSelection & selected,
+        const QItemSelection& deselected)
 {
-    int row = selected.indexes().at(0).row();
+    QModelIndex index = selected.indexes().at(0);
+    int row = index.data(Qt::DisplayRole).toString().toInt() - 1;
 
     this->packettext->addData(this->pSniffer->snifferDataVector.at(row).rawData); 
     this->prototree->startAnalysis(this->pSniffer->snifferDataVector.at(row), row+1);
@@ -313,10 +328,16 @@ void MainWindow::selectInterface()
 void MainWindow::setCaptureOptions(const bool bPromiscuous,
         const int deviceIndex, const QString& strFilter)
 {
-    this->pSniffer->openNetDev(deviceIndex, bPromiscuous);
+    if (!this->pSniffer->openNetDev(deviceIndex, bPromiscuous))
+    {
+        return;
+    }
     if (strFilter != "")
     {
-        this->pSniffer->setDeviceFilter(strFilter);
+        if(!this->pSniffer->setDeviceFilter(strFilter))
+        {
+            return;
+        }
     }
 
     startCapture();
@@ -349,3 +370,56 @@ void MainWindow::zoomOriginal()
     this->tableview->zoomTextSize(0);
     this->zoomLevel = 0;
 }
+
+void MainWindow::goFirstPacket()
+{
+    this->tableview->selectRow(0);
+}
+
+void MainWindow::goLastPacket()
+{
+    int row = this->tableview->getModel()->rowCount()-1;
+    this->tableview->selectRow(row);
+}
+
+void MainWindow::goJumpPacket()
+{
+    bool ok = false;
+    int i = QInputDialog::getInt(this, tr("Sniffer: Go to Packet"),
+                                              tr("Packet Number:"),1,1,
+                                              this->tableview->getModel()->rowCount(), 1, &ok);
+
+    if (ok)
+    {
+        this->tableview->selectRow(i-1);
+    }
+}
+
+void MainWindow::goNextPacket()
+{
+    if (this->currentIndex == 0)
+    {
+        return;
+    }
+    else
+    {
+        qDebug("The front value is %d:%d",this->currentIndex,this->histroyIndexVector.at(this->currentIndex));
+        this->tableview->selectRow(this->histroyIndexVector.at(this->currentIndex));
+        this->currentIndex --;
+    }
+}
+
+void MainWindow::goPreviousPacket()
+{
+    if (this->currentIndex == this->histroyIndexVector.size() - 1)
+    {
+        return;
+    }
+    else
+    {
+        qDebug("The front value is %d:%d",this->currentIndex,this->histroyIndexVector.at(this->currentIndex));
+        this->tableview->selectRow(this->histroyIndexVector.at(this->currentIndex));
+        this->currentIndex ++;
+    }
+}
+
