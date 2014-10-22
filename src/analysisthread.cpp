@@ -248,6 +248,7 @@ void AnalysisThread::addIpNode(int protoInd)
 {
     struct ip* pip_header = (struct ip *)this->snifferData.protocalVec.at(protoInd)->pProtocal;
 
+    int orignalOffset = this->offset;
     QStandardItem* ipitem = new QStandardItem();
     this->len = pip_header->ip_hl * 4;
     setUserRoleData(ipitem);
@@ -407,6 +408,8 @@ void AnalysisThread::addIpNode(int protoInd)
     ipitem->appendRow(item);
     this->offset += this->len;
     
+
+    this->offset = orignalOffset + pip_header->ip_hl * 4;
     int type = pip_header->ip_p;
 
     switch(type)
@@ -441,7 +444,7 @@ void AnalysisThread::addIpNode(int protoInd)
     }
 }
 
-void AnalysisThread::addIpV6Node(int protoInd)
+void AnalysisThread::addIpV6Node(int )
 {
 }
 
@@ -851,13 +854,98 @@ void AnalysisThread::addUdpNode(int protoInd)
 
 }
 
-void AnalysisThread::addIcmpNode(int protoInd)
+void AnalysisThread::addIcmpNode(int)
 {
-
 }
 
 void AnalysisThread::addIgmpNode(int protoInd)
 {
+    struct igmp* pigmp_header = (struct igmp *)this->snifferData.protocalVec.at(protoInd)->pProtocal;
+
+    int version = 1;
+    QString type = "membership report";
+    QString maxrestime = "";
+
+    switch (pigmp_header->igmp_type)
+    {
+        case IGMP_MEMBERSHIP_QUERY:
+        {
+            type = "membership query";
+            break;
+        }
+        case IGMP_V1_MEMBERSHIP_REPORT:
+        {
+            break;
+        }
+        case IGMP_V2_MEMBERSHIP_REPORT:
+        {
+            version = 2;
+            maxrestime = QString("Max Response Time: %1 sec (0x%2)")
+                .arg(pigmp_header->igmp_code / 10.0)
+                .arg(pigmp_header->igmp_code,2,16,QLatin1Char('0'));
+            break;
+        }
+        case IGMP_V2_LEAVE_GROUP:
+        {
+            type = "Leave-group message";
+            break;
+        }
+        case 0x22:
+        {
+            version = 3;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
+    QStandardItem* igmpitem = new QStandardItem();
+    this->len = sizeof(struct igmp);
+    setUserRoleData(igmpitem);
+    igmpitem->setText("Internet Group Management Protocol");
+    
+    QStandardItem* item = new QStandardItem();
+    item->setText(QString("IGMP Version: %1").arg(version));
+    igmpitem->appendRow(item);
+
+    item = new QStandardItem();
+    item->setText(QString("Type: %1 (0x%2)")
+            .arg(type)
+            .arg(pigmp_header->igmp_type,2,16));
+    this->len = sizeof(pigmp_header->igmp_type);
+    setUserRoleData(item);
+    igmpitem->appendRow(item);
+    this->offset += this->len;
+
+    if (maxrestime != "")
+    {
+        item = new QStandardItem();
+        this->len = 1;
+        item->setText(maxrestime);
+        setUserRoleData(item);
+        igmpitem->appendRow(item);
+    }
+    this->offset += 1;
+
+    item = new QStandardItem();
+    this->len = sizeof(pigmp_header->igmp_cksum);
+    item->setText(QString("Header checksum: 0x%1")
+            .arg(ntohs(pigmp_header->igmp_cksum),4,16));
+    setUserRoleData(item);
+    igmpitem->appendRow(item);
+    this->offset += this->len;
+    
+    item = new QStandardItem();
+    this->len = sizeof(pigmp_header->igmp_group); 
+    item->setText(QString("Multicast Address: %1")
+            .arg(SnifferUtil::netToIp(pigmp_header->igmp_group)));
+    setUserRoleData(item);
+    igmpitem->appendRow(item);
+    this->offset += this->len;
+
+    this->model->setItem(this->irow++, 0, igmpitem);   
 
 }
 

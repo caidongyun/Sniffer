@@ -32,11 +32,14 @@ MainWindow::MainWindow()
                     QMessageBox::Ok);
     }
 
+
+    this->zoomLevel = 0;
+
     createMainWidget();
     createAction();
     createMenu();
     createToolBar();
-    
+    createStatusBar(); 
 }
 
 MainWindow::~MainWindow()
@@ -95,6 +98,8 @@ void MainWindow::createMainWidget()
                     const int, const QString&)), this,
                 SLOT(setCaptureOptions(const bool, const int, const QString&)));
 
+    QObject::connect(this->tableview, SIGNAL(updateTableviewStatus(const int,const int)),
+            this, SLOT(updateTableviewStatus(const int,const int)));
     
 }
 
@@ -264,6 +269,32 @@ void MainWindow::createToolBar()
    
 }
 
+void MainWindow::createStatusBar()
+{
+    this->fileLabelStatusBar = new QLabel("Ready to load or capture");
+    this->tableviewLabelStatusBar = new QLabel("No Packet");
+    this->statusbar = new QStatusBar(this);
+    this->splitterStatusbar = new QSplitter(Qt::Horizontal,this->statusbar);
+    this->splitterStatusbar->setHandleWidth(3);
+    this->splitterStatusbar->setStyleSheet(QString(
+            "QSplitter::handle {"
+            "  border-left: 1px solid palette(mid);"
+            "  border-right: 1px solid palette(mid);"
+            "  margin: 0px 2px 0px 2px;"
+            "}"));
+
+    this->splitterStatusbar->addWidget(this->fileLabelStatusBar);
+    this->splitterStatusbar->addWidget(this->tableviewLabelStatusBar);
+
+    this->splitterStatusbar->setStretchFactor(0,1);
+    this->splitterStatusbar->setStretchFactor(1,5);
+
+    this->statusbar->addWidget(this->splitterStatusbar,1);
+
+    this->setStatusBar(this->statusbar);
+    
+}
+
 void MainWindow::startCapture()
 {
     this->captureStartAction->setIcon(QIcon(":/images/x-capture-start.png"));
@@ -417,7 +448,6 @@ void MainWindow::goNextPacket()
     }
     else
     {
-        qDebug("The front value is %d:%d",this->currentIndex,this->histroyIndexVector.at(this->currentIndex));
         this->tableview->selectRow(this->histroyIndexVector.at(this->currentIndex));
         this->currentIndex --;
     }
@@ -431,9 +461,17 @@ void MainWindow::goPreviousPacket()
     }
     else
     {
-        qDebug("The front value is %d:%d",this->currentIndex,this->histroyIndexVector.at(this->currentIndex));
         this->tableview->selectRow(this->histroyIndexVector.at(this->currentIndex));
         this->currentIndex ++;
     }
 }
 
+void MainWindow::updateTableviewStatus(const int displayNum,
+                    const int totalNum)
+{
+
+    this->tableviewLabelStatusBar->setText(QString("Packets: %1  Displayed: %2 (%3\%)")
+            .arg(totalNum)
+            .arg(displayNum)
+            .arg((100*displayNum) / totalNum ));
+}

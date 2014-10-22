@@ -31,6 +31,7 @@
 #include <QKeySequence>
 #include <QInputDialog>
 #include <QAbstractItemView>
+#include <QStatusBar>
 
 #include "sniffer.h"
 #include "snifferthread.h"
@@ -54,6 +55,7 @@ class QIcon;
 class QToolBar;
 class QMenuBar;
 class QMenu;
+class QStatusBar;
 
 class OriginPacketText;
 class ProtoTree;
@@ -73,6 +75,8 @@ public slots:
     void prototreeSelectChanged(const QItemSelection& selected);
     void setCaptureOptions(const bool bPromiscuous, 
             const int deviceIndex, const QString& strFilter);
+    void updateTableviewStatus(const int displayNum,
+            const int totalNum);
 
 
 private:
@@ -80,6 +84,7 @@ private:
     void createAction();
     void createMenu();
     void createToolBar();
+    void createStatusBar();
 
 private slots:
     void startCapture();
@@ -135,6 +140,12 @@ private:
     QMenu* viewMenu;                    // The view menu
     QMenu* captureMenu;                 // The capture menu
     QMenu* goMenu;                      // The go menu
+
+    // StatusBar
+    QStatusBar* statusbar;
+    QSplitter* splitterStatusbar;        // The splitter in the statusbar
+    QLabel* fileLabelStatusBar;         // The file container place
+    QLabel* tableviewLabelStatusBar;    // The tableview status bar message
 
     SnifferThread *pSnifferthread;
     Sniffer *pSniffer;

@@ -66,6 +66,10 @@ class MyTableView : public QTableView
          * */
         void zoomTextSize(int zoomLevel);
 
+    signals:
+        void updateTableviewStatus(const int displayNum,
+                            const int totalNum);
+
     public slots:
         /**
          * Add the sniffer data to the tableview

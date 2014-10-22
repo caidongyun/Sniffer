@@ -79,6 +79,8 @@ void MyTableView::addPacketItem(QString strTime, QString strSrc,
     model->setItem(iPos, 6, item);
 
     this->iPos ++;
+
+    emit updateTableviewStatus(this->iPos, this->iPos);
 }
 
 void MyTableView::clearData()
@@ -115,6 +117,7 @@ void MyTableView::setFilterString(QString strFilter)
     if (strFilter.simplified() == "")
     {
         this->proxyModel->setFilterRegExp(QRegExp());
+        emit updateTableviewStatus(this->proxyModel->rowCount(), this->iPos);
         return;
     }
 
@@ -156,5 +159,7 @@ void MyTableView::setFilterString(QString strFilter)
 
     this->proxyModel->setFilterRegExp(QRegExp(columnValueStr, Qt::CaseInsensitive, QRegExp::FixedString));
     this->proxyModel->setFilterKeyColumn(column);
+
+    emit updateTableviewStatus(this->proxyModel->rowCount(), this->iPos);
 }
 

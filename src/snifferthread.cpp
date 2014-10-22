@@ -208,8 +208,8 @@ void SnifferThread::run()
                             if (pad->strProtocal != "")
                             {
                                 strProtocol = pad->strProtocal.toUpper();
+                                info = pad->strContent.split("\r\n")[0];
                             }
-                            info = pad->strContent.split("\r\n")[0];
                             snifferProtocal = new SnifferProtocal();
                             snifferProtocal->strProtocal = pad->strProtocal;
                             snifferProtocal->pProtocal = pad;
@@ -275,6 +275,7 @@ void SnifferThread::run()
                     case IPPROTO_ICMP:
                     {
                         strProtocol = "ICMP";
+
                         break;
                     }
                     case IPPROTO_ICMPV6:
@@ -285,6 +286,50 @@ void SnifferThread::run()
                     case IPPROTO_IGMP:
                     {
                         strProtocol = "IGMP";
+                        struct igmp * tmpIgmpHeader = (struct igmp*)(pPktData + tmpFrameOffset);
+                        tmpFrameOffset += sizeof(struct igmp);
+
+                        snifferProtocal = new SnifferProtocal();
+                        snifferProtocal->strProtocal = SnifferType::IGMP_PROTOCAL;
+                        snifferProtocal->pProtocal = SnifferUtil::mallocMem(tmpIgmpHeader, sizeof(struct igmp));
+                        tmpSnifferData.protocalVec.append(snifferProtocal);
+
+                        switch (tmpIgmpHeader->igmp_type)
+                        {
+                            case IGMP_MEMBERSHIP_QUERY:
+                            {
+                                info = "membership query";
+                                break;
+                            }
+                            case IGMP_V1_MEMBERSHIP_REPORT:
+                            {
+                                info = "membership report";
+                                break;
+                            }
+                            case IGMP_V2_MEMBERSHIP_REPORT:
+                            {
+                                info = "membership report";
+                                strProtocol = "IGMPV2";
+                                break;
+                            }
+                            case IGMP_V2_LEAVE_GROUP:
+                            {
+                                info = "Leave-group message";
+                                strProtocol = "IGMPV2";
+                                break;
+                            }
+                            case 0x22:
+                            {
+                                info = "membership report";
+                                strProtocol = "IGMPV3";
+                                break;
+                            }
+                            default:
+                            {
+                                info = "membership report";
+                                break;
+                            }
+                        }
                         break;
                     }
                     default:

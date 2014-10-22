@@ -32,6 +32,7 @@
 #include <netinet/udp.h>
 #include <netinet/ip_icmp.h>
 #include <netinet/icmp6.h>
+#include <netinet/igmp.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -71,6 +72,7 @@ namespace SnifferType
 {
     const QString ETHER_PROTOCAL = "ether";
     const QString IP_PROTOCAL = "ip";
+    const QString IGMP_PROTOCAL = "igmp";
     const QString IPV6_PROTOCAL = "ipv6";
     const QString ARP_PROTOCAL = "arp";
     const QString TCP_PROTOCAL = "tcp";
